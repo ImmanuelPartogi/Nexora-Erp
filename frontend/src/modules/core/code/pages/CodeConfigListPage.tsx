@@ -1,6 +1,7 @@
 // FILE: frontend/src/modules/core/code/pages/CodeConfigListPage.tsx
 import { useState, useEffect, ChangeEvent } from 'react';
 import { codeConfigApi, CodeConfig, CODE_ENTITY_LABELS } from '@/shared/api/code-config.api';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 const ENTITY_OPTIONS = Object.entries(CODE_ENTITY_LABELS ?? {}).map(([value, label]) => ({ value, label: label as string }));
 
@@ -270,26 +271,28 @@ export default function CodeConfigListPage() {
               </div>
             </div>
 
-            <button
-              onClick={openCreate}
-              disabled={availableEntities.length === 0}
-              className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
-              style={{
-                padding: '8px 16px', fontSize: 13.5, border: 'none',
-                background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
-                boxShadow: '0 4px 14px rgba(124,58,237,0.3)',
-                cursor: availableEntities.length === 0 ? 'not-allowed' : 'pointer',
-                opacity: availableEntities.length === 0 ? 0.5 : 1,
-                fontFamily: 'inherit', transition: 'box-shadow 0.15s',
-              }}
-              onMouseEnter={(e) => { if (availableEntities.length > 0) (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(124,58,237,0.42)'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(124,58,237,0.3)'; }}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Tambah Konfigurasi
-            </button>
+            {!READ_ONLY && (
+              <button
+                onClick={openCreate}
+                disabled={availableEntities.length === 0}
+                className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
+                style={{
+                  padding: '8px 16px', fontSize: 13.5, border: 'none',
+                  background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
+                  boxShadow: '0 4px 14px rgba(124,58,237,0.3)',
+                  cursor: availableEntities.length === 0 ? 'not-allowed' : 'pointer',
+                  opacity: availableEntities.length === 0 ? 0.5 : 1,
+                  fontFamily: 'inherit', transition: 'box-shadow 0.15s',
+                }}
+                onMouseEnter={(e) => { if (availableEntities.length > 0) (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(124,58,237,0.42)'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(124,58,237,0.3)'; }}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Konfigurasi
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -428,57 +431,59 @@ export default function CodeConfigListPage() {
 
                           {/* Actions — hover reveal */}
                           <td style={{ padding: '12px 16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: hovered || busy ? 1 : 0, transition: 'opacity 0.15s' }}>
-                              <button
-                                onClick={() => openEdit(config)}
-                                disabled={busy}
-                                style={{
-                                  padding: '5px 12px', fontSize: 12, fontWeight: 600,
-                                  color: '#475569', background: '#ffffff', border: '1px solid #e2e8f0',
-                                  borderRadius: 7, cursor: busy ? 'not-allowed' : 'pointer',
-                                  opacity: busy ? 0.4 : 1, fontFamily: 'inherit', transition: 'background 0.12s',
-                                }}
-                                onMouseEnter={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#ffffff'; }}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => handleReset(config)}
-                                disabled={busy}
-                                style={{
-                                  padding: '5px 12px', fontSize: 12, fontWeight: 600,
-                                  color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a',
-                                  borderRadius: 7, cursor: busy ? 'not-allowed' : 'pointer',
-                                  opacity: busy ? 0.4 : 1, fontFamily: 'inherit', transition: 'background 0.12s',
-                                }}
-                                onMouseEnter={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.background = '#fef3c7'; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fffbeb'; }}
-                              >
-                                Reset
-                              </button>
-                              <button
-                                onClick={() => handleDelete(config)}
-                                disabled={busy}
-                                className="flex items-center gap-1"
-                                style={{
-                                  padding: '5px 12px', fontSize: 12, fontWeight: 600,
-                                  color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3',
-                                  borderRadius: 7, cursor: busy ? 'not-allowed' : 'pointer',
-                                  opacity: busy ? 0.6 : 1, fontFamily: 'inherit', transition: 'background 0.12s',
-                                }}
-                                onMouseEnter={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.background = '#ffe4e6'; }}
-                                onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff1f2'; }}
-                              >
-                                {busy && (
-                                  <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                  </svg>
-                                )}
-                                Hapus
-                              </button>
-                            </div>
+                            {!READ_ONLY && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: hovered || busy ? 1 : 0, transition: 'opacity 0.15s' }}>
+                                <button
+                                  onClick={() => openEdit(config)}
+                                  disabled={busy}
+                                  style={{
+                                    padding: '5px 12px', fontSize: 12, fontWeight: 600,
+                                    color: '#475569', background: '#ffffff', border: '1px solid #e2e8f0',
+                                    borderRadius: 7, cursor: busy ? 'not-allowed' : 'pointer',
+                                    opacity: busy ? 0.4 : 1, fontFamily: 'inherit', transition: 'background 0.12s',
+                                  }}
+                                  onMouseEnter={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.background = '#f8fafc'; }}
+                                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#ffffff'; }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleReset(config)}
+                                  disabled={busy}
+                                  style={{
+                                    padding: '5px 12px', fontSize: 12, fontWeight: 600,
+                                    color: '#92400e', background: '#fffbeb', border: '1px solid #fde68a',
+                                    borderRadius: 7, cursor: busy ? 'not-allowed' : 'pointer',
+                                    opacity: busy ? 0.4 : 1, fontFamily: 'inherit', transition: 'background 0.12s',
+                                  }}
+                                  onMouseEnter={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.background = '#fef3c7'; }}
+                                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fffbeb'; }}
+                                >
+                                  Reset
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(config)}
+                                  disabled={busy}
+                                  className="flex items-center gap-1"
+                                  style={{
+                                    padding: '5px 12px', fontSize: 12, fontWeight: 600,
+                                    color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3',
+                                    borderRadius: 7, cursor: busy ? 'not-allowed' : 'pointer',
+                                    opacity: busy ? 0.6 : 1, fontFamily: 'inherit', transition: 'background 0.12s',
+                                  }}
+                                  onMouseEnter={(e) => { if (!busy) (e.currentTarget as HTMLElement).style.background = '#ffe4e6'; }}
+                                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = '#fff1f2'; }}
+                                >
+                                  {busy && (
+                                    <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                    </svg>
+                                  )}
+                                  Hapus
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       );
@@ -492,7 +497,7 @@ export default function CodeConfigListPage() {
       </div>
 
       {/* ── Modal ──────────────────────────────────────────── */}
-      {modalMode && (
+      {modalMode && !READ_ONLY && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
           <div className="absolute inset-0 backdrop-blur-sm" style={{ background: 'rgba(15,23,42,0.45)' }} onClick={closeModal} />

@@ -7,6 +7,7 @@ import { EmployeeForm } from '../components/EmployeeForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { EmployeeFormData } from '../employee.schema';
 import { Employee } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 // ── Status config (inline styles) ────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
@@ -123,6 +124,7 @@ export const EmployeeListPage = () => {
               </div>
             </div>
 
+            {!READ_ONLY && (
             <PermissionGate permission="data.employee.create">
               <button
                 onClick={() => setModalOpen(true)}
@@ -137,6 +139,7 @@ export const EmployeeListPage = () => {
                 Tambah Karyawan
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -325,6 +328,7 @@ export const EmployeeListPage = () => {
                                   Detail
                                 </button>
                               </PermissionGate>
+                              {!READ_ONLY && (
                               <PermissionGate permission="data.employee.delete">
                                 <button onClick={() => handleDelete(emp.id, emp.name)}
                                   style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s' }}
@@ -333,6 +337,7 @@ export const EmployeeListPage = () => {
                                   Hapus
                                 </button>
                               </PermissionGate>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -375,7 +380,7 @@ export const EmployeeListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Tambah Karyawan Baru" subtitle="Isi data karyawan di bawah ini" maxWidth={660} onClose={() => setModalOpen(false)}>
           <EmployeeForm onSubmit={handleCreate} onCancel={() => setModalOpen(false)} isLoading={isCreating} />
         </ModalShell>

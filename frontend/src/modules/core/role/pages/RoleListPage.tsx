@@ -7,6 +7,7 @@ import { PermissionGate } from '@/app/PermissionGate';
 import { RoleFormData } from '../role.schema';
 import { Role } from '@/shared/types';
 import { PERMISSIONS } from '@/shared/constants/permissions';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 // ── Helpers ───────────────────────────────────────────────────
 const fmtEntity = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ');
@@ -211,24 +212,26 @@ export const RoleListPage = () => {
               </div>
             </div>
 
-            <PermissionGate permission={PERMISSIONS.ROLE_CREATE}>
-              <button
-                onClick={() => setCreateOpen(true)}
-                className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
-                style={{
-                  padding: '8px 16px', fontSize: 13.5, border: 'none', cursor: 'pointer',
-                  background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
-                  boxShadow: '0 4px 14px rgba(124,58,237,0.3)', fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(124,58,237,0.42)'}
-                onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(124,58,237,0.3)'}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Buat Role
-              </button>
-            </PermissionGate>
+            {!READ_ONLY && (
+              <PermissionGate permission={PERMISSIONS.ROLE_CREATE}>
+                <button
+                  onClick={() => setCreateOpen(true)}
+                  className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
+                  style={{
+                    padding: '8px 16px', fontSize: 13.5, border: 'none', cursor: 'pointer',
+                    background: 'linear-gradient(135deg, #7c3aed 0%, #2563eb 100%)',
+                    boxShadow: '0 4px 14px rgba(124,58,237,0.3)', fontFamily: 'inherit',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(124,58,237,0.42)'}
+                  onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(124,58,237,0.3)'}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Buat Role
+                </button>
+              </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -334,38 +337,40 @@ export const RoleListPage = () => {
 
                         {/* Actions */}
                         <td style={{ padding: '12px 16px' }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, opacity: hoveredId === role.id ? 1 : 0, transition: "opacity 0.15s" }}>
-                            <PermissionGate permission={PERMISSIONS.ROLE_EDIT}>
-                              <button
-                                onClick={() => { setSelectedRole(role); setEditOpen(true); }}
-                                style={{
-                                  padding: '5px 12px', fontSize: 12, fontWeight: 600,
-                                  color: '#475569', background: '#ffffff', border: '1px solid #e2e8f0',
-                                  borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s',
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = '#f8fafc'}
-                                onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#ffffff'}
-                              >
-                                Edit
-                              </button>
-                            </PermissionGate>
-                            {canDelete(role) && (
-                              <PermissionGate permission={PERMISSIONS.ROLE_DELETE}>
+                          {!READ_ONLY && (
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, opacity: hoveredId === role.id ? 1 : 0, transition: "opacity 0.15s" }}>
+                              <PermissionGate permission={PERMISSIONS.ROLE_EDIT}>
                                 <button
-                                  onClick={() => handleDelete(role.id)}
+                                  onClick={() => { setSelectedRole(role); setEditOpen(true); }}
                                   style={{
                                     padding: '5px 12px', fontSize: 12, fontWeight: 600,
-                                    color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3',
+                                    color: '#475569', background: '#ffffff', border: '1px solid #e2e8f0',
                                     borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s',
                                   }}
-                                  onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = '#ffe4e6'}
-                                  onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#fff1f2'}
+                                  onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = '#f8fafc'}
+                                  onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#ffffff'}
                                 >
-                                  Hapus
+                                  Edit
                                 </button>
                               </PermissionGate>
-                            )}
-                          </div>
+                              {canDelete(role) && (
+                                <PermissionGate permission={PERMISSIONS.ROLE_DELETE}>
+                                  <button
+                                    onClick={() => handleDelete(role.id)}
+                                    style={{
+                                      padding: '5px 12px', fontSize: 12, fontWeight: 600,
+                                      color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3',
+                                      borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s',
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = '#ffe4e6'}
+                                    onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#fff1f2'}
+                                  >
+                                    Hapus
+                                  </button>
+                                </PermissionGate>
+                              )}
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -453,14 +458,14 @@ export const RoleListPage = () => {
       )}
 
       {/* ── Create modal ─────────────────────────────────────── */}
-      {createOpen && (
+      {createOpen && !READ_ONLY && (
         <ModalShell title="Buat Role Baru" subtitle="Tentukan nama dan izin akses role" onClose={() => setCreateOpen(false)} maxWidth={680}>
           <RoleForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} isLoading={isProcessing} />
         </ModalShell>
       )}
 
       {/* ── Edit modal ───────────────────────────────────────── */}
-      {editOpen && selectedRole && (
+      {editOpen && selectedRole && !READ_ONLY && (
         <ModalShell title="Edit Role" subtitle="Perbarui nama dan izin akses role" onClose={closeEdit} maxWidth={680}>
           <RoleForm role={selectedRole} onSubmit={handleUpdate} onCancel={closeEdit} isLoading={isProcessing} />
         </ModalShell>

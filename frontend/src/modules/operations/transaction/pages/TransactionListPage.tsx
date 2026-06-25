@@ -7,6 +7,7 @@ import { TransactionForm } from '../components/TransactionForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { TransactionFormData } from '../transaction.schema';
 import { Transaction } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 // ── Status & Type config ───────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
@@ -129,6 +130,7 @@ export const TransactionListPage = () => {
                 <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>Manajemen pemasukan & pengeluaran</p>
               </div>
             </div>
+            {!READ_ONLY && (
             <PermissionGate permission="operations.transaction.create">
               <button onClick={() => setModalOpen(true)}
                 className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
@@ -139,6 +141,7 @@ export const TransactionListPage = () => {
                 Tambah Transaksi
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -298,7 +301,7 @@ export const TransactionListPage = () => {
                                 onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#ffffff'}>
                                 Detail
                               </button>
-                              {tx.status === 'draft' && (
+                              {tx.status === 'draft' && !READ_ONLY && (
                                 <PermissionGate permission="operations.transaction.approve">
                                   <button onClick={() => handleApprove(tx.id)}
                                     style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#065f46', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s' }}
@@ -357,7 +360,7 @@ export const TransactionListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Tambah Transaksi Baru" subtitle="Isi detail transaksi di bawah ini" onClose={() => setModalOpen(false)}>
           <TransactionForm onSubmit={handleCreate} onCancel={() => setModalOpen(false)} isLoading={isCreating} />
         </ModalShell>

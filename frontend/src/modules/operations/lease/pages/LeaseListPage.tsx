@@ -7,6 +7,7 @@ import { LeaseForm } from '../components/LeaseForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { LeaseFormData } from '../lease.schema';
 import { Lease } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 // ── Status config ──────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
@@ -124,6 +125,7 @@ export const LeaseListPage = () => {
                 <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>Manajemen perjanjian sewa</p>
               </div>
             </div>
+            {!READ_ONLY && (
             <PermissionGate permission="operations.lease.create">
               <button onClick={() => setModalOpen(true)}
                 className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
@@ -134,6 +136,7 @@ export const LeaseListPage = () => {
                 Tambah Sewa
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -278,7 +281,7 @@ export const LeaseListPage = () => {
                                 onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#ffffff'}>
                                 Detail
                               </button>
-                              {lease.status === 'draft' && (
+                              {lease.status === 'draft' && !READ_ONLY && (
                                 <PermissionGate permission="operations.lease.approve">
                                   <button onClick={() => handleApprove(lease.id, lease.customerName)}
                                     style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#065f46', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s' }}
@@ -337,7 +340,7 @@ export const LeaseListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Tambah Sewa Baru" subtitle="Isi detail perjanjian sewa di bawah ini" onClose={() => setModalOpen(false)}>
           <LeaseForm onSubmit={handleCreate} onCancel={() => setModalOpen(false)} isLoading={isCreating} />
         </ModalShell>

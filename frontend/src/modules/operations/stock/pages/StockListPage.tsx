@@ -7,6 +7,7 @@ import { StockOutForm } from '../components/StockOutForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { StockInFormData, StockOutFormData } from '../stock.schema';
 import { Stock } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 const fmtDate = (d: string) => new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -122,6 +123,7 @@ export const StockListPage = () => {
                 <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>Manajemen level inventori</p>
               </div>
             </div>
+            {!READ_ONLY && (
             <div className="flex items-center gap-2">
               <PermissionGate permission="operations.stock.create">
                 <button onClick={() => setStockInOpen(true)}
@@ -144,6 +146,7 @@ export const StockListPage = () => {
                 </button>
               </PermissionGate>
             </div>
+            )}
           </div>
         </div>
       </div>
@@ -250,12 +253,12 @@ export const StockListPage = () => {
         </div>
       </div>
 
-      {stockInOpen && (
+      {stockInOpen && !READ_ONLY && (
         <ModalShell title="Stok Masuk" subtitle="Proses penerimaan stok ke gudang" accentFrom="#0d9488" accentTo="#2dd4bf" onClose={() => setStockInOpen(false)}>
           <StockInForm onSubmit={handleStockIn} onCancel={() => setStockInOpen(false)} isLoading={isProcessing} />
         </ModalShell>
       )}
-      {stockOutOpen && (
+      {stockOutOpen && !READ_ONLY && (
         <ModalShell title="Stok Keluar" subtitle="Proses pengeluaran stok dari gudang" accentFrom="#0d9488" accentTo="#2dd4bf" onClose={() => setStockOutOpen(false)}>
           <StockOutForm onSubmit={handleStockOut} onCancel={() => setStockOutOpen(false)} isLoading={isProcessing} />
         </ModalShell>

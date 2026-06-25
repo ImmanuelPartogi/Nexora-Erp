@@ -8,6 +8,7 @@ import { PermissionGate } from '@/app/PermissionGate';
 import { ProductFormData } from '../product.schema';
 import { Product } from '@/shared/types';
 import { AxiosError } from 'axios';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 // ── Type config ────────────────────────────────────────────────
 const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
@@ -135,6 +136,7 @@ export const ProductListPage = () => {
                 <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>Manajemen katalog produk dan layanan</p>
               </div>
             </div>
+            {!READ_ONLY && (
             <PermissionGate permission="data.product.create">
               <button onClick={() => { setModalOpen(true); setErrorMsg(''); }}
                 className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
@@ -145,6 +147,7 @@ export const ProductListPage = () => {
                 Tambah Produk
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -313,16 +316,18 @@ export const ProductListPage = () => {
                                   onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#ffffff'}>
                                   Detail
                                 </button>
-                              </PermissionGate>
-                              <PermissionGate permission="data.product.delete">
-                                <button onClick={() => handleDelete(prod.id, prod.name)}
+              </PermissionGate>
+              {!READ_ONLY && (
+              <PermissionGate permission="data.product.delete">
+                <button onClick={() => handleDelete(prod.id, prod.name)}
                                   style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s' }}
                                   onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = '#ffe4e6'}
                                   onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#fff1f2'}>
-                                  Hapus
-                                </button>
-                              </PermissionGate>
-                            </div>
+                  Hapus
+                </button>
+              </PermissionGate>
+              )}
+            </div>
                           </td>
                         </tr>
                       );
@@ -378,7 +383,7 @@ export const ProductListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Tambah Produk Baru" subtitle="Isi detail produk di bawah ini" onClose={() => { setModalOpen(false); setErrorMsg(''); }}>
           {errorMsg && (
             <div className="rounded-xl mb-4" style={{ padding: '10px 14px', background: '#fff1f2', border: '1px solid #fecdd3', fontSize: 13, color: '#991b1b', whiteSpace: 'pre-line' }}>

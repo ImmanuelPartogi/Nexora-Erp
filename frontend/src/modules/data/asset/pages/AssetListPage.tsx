@@ -7,6 +7,7 @@ import { AssetForm } from '../components/AssetForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { AssetFormData } from '../asset.schema';
 import { Asset } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 const CONDITION: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
   excellent:   { label: 'Sempurna',  bg: '#f5f3ff', text: '#5b21b6', border: '#ddd6fe', dot: '#7c3aed' },
@@ -211,24 +212,26 @@ export const AssetListPage = () => {
               </div>
             </div>
 
-            <PermissionGate permission="data.asset.create">
-              <button
-                onClick={() => setModalOpen(true)}
-                className="flex items-center gap-1.5 font-semibold text-white rounded-xl transition-all"
-                style={{
-                  padding: '8px 16px', fontSize: 13.5,
-                  background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
-                  boxShadow: '0 4px 14px rgba(14,165,233,0.3)',
-                }}
-                onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(14,165,233,0.42)'}
-                onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(14,165,233,0.3)'}
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Tambah Aset
-              </button>
-            </PermissionGate>
+            {!READ_ONLY && (
+              <PermissionGate permission="data.asset.create">
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="flex items-center gap-1.5 font-semibold text-white rounded-xl transition-all"
+                  style={{
+                    padding: '8px 16px', fontSize: 13.5,
+                    background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
+                    boxShadow: '0 4px 14px rgba(14,165,233,0.3)',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 18px rgba(14,165,233,0.42)'}
+                  onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 14px rgba(14,165,233,0.3)'}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Tambah Aset
+                </button>
+              </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -432,20 +435,22 @@ export const AssetListPage = () => {
                                   Detail
                                 </button>
                               </PermissionGate>
-                              <PermissionGate permission="data.asset.delete">
-                                <button
-                                  onClick={() => handleDelete(asset.id, asset.name)}
-                                  style={{
-                                    padding: '5px 12px', fontSize: 12, fontWeight: 600,
-                                    color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3',
-                                    borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s',
-                                  }}
-                                  onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = '#ffe4e6'}
-                                  onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#fff1f2'}
-                                >
-                                  Hapus
-                                </button>
-                              </PermissionGate>
+                              {!READ_ONLY && (
+                                <PermissionGate permission="data.asset.delete">
+                                  <button
+                                    onClick={() => handleDelete(asset.id, asset.name)}
+                                    style={{
+                                      padding: '5px 12px', fontSize: 12, fontWeight: 600,
+                                      color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3',
+                                      borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s',
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.background = '#ffe4e6'}
+                                    onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.background = '#fff1f2'}
+                                  >
+                                    Hapus
+                                  </button>
+                                </PermissionGate>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -512,7 +517,7 @@ export const AssetListPage = () => {
       </div>
 
       {/* ── Create modal ──────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Tambah Aset Baru" onClose={() => setModalOpen(false)}>
           <AssetForm onSubmit={handleCreate} onCancel={() => setModalOpen(false)} isLoading={isCreating} />
         </ModalShell>

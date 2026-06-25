@@ -7,6 +7,7 @@ import { LocationForm } from '../components/LocationForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { LocationFormData } from '../location.schema';
 import { Location } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 // ── Type config (inline styles) ───────────────────────────────
 const TYPE_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; dot: string; icon: React.ReactNode }> = {
@@ -127,6 +128,7 @@ export const LocationListPage = () => {
               </div>
             </div>
 
+            {!READ_ONLY && (
             <PermissionGate permission="data.location.create">
               <button
                 onClick={() => setModalOpen(true)}
@@ -141,6 +143,7 @@ export const LocationListPage = () => {
                 Tambah Lokasi
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -304,6 +307,7 @@ export const LocationListPage = () => {
                                   Detail
                                 </button>
                               </PermissionGate>
+                              {!READ_ONLY && (
                               <PermissionGate permission="data.location.delete">
                                 <button onClick={() => handleDelete(loc.id, loc.name)}
                                   style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s' }}
@@ -312,6 +316,7 @@ export const LocationListPage = () => {
                                   Hapus
                                 </button>
                               </PermissionGate>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -354,7 +359,7 @@ export const LocationListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Tambah Lokasi Baru" subtitle="Isi detail lokasi di bawah ini" onClose={() => setModalOpen(false)}>
           <LocationForm onSubmit={handleCreate} onCancel={() => setModalOpen(false)} isLoading={isCreating} />
         </ModalShell>

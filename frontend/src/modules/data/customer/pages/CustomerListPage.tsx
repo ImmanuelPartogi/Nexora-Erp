@@ -7,6 +7,7 @@ import { CustomerForm } from '../components/CustomerForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { CustomerFormData } from '../customer.schema';
 import { Customer } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 // ── Avatar gradient ───────────────────────────────────────────
 const AVATAR_GRADS = [
@@ -129,6 +130,7 @@ export const CustomerListPage = () => {
               </div>
             </div>
 
+            {!READ_ONLY && (
             <PermissionGate permission="data.customer.create">
               <button
                 onClick={() => setModalOpen(true)}
@@ -143,6 +145,7 @@ export const CustomerListPage = () => {
                 Tambah Customer
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -320,6 +323,7 @@ export const CustomerListPage = () => {
                                 Detail
                               </button>
                             </PermissionGate>
+                            {!READ_ONLY && (
                             <PermissionGate permission="data.customer.delete">
                               <button
                                 onClick={() => handleDelete(customer.id, customer.name)}
@@ -330,6 +334,7 @@ export const CustomerListPage = () => {
                                 Hapus
                               </button>
                             </PermissionGate>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -374,7 +379,7 @@ export const CustomerListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Tambah Customer Baru" subtitle="Isi data pelanggan di bawah ini" onClose={() => setModalOpen(false)}>
           <CustomerForm onSubmit={handleCreate} onCancel={() => setModalOpen(false)} isLoading={isCreating} />
         </ModalShell>

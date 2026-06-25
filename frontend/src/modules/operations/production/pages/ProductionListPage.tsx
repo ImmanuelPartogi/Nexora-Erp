@@ -6,6 +6,7 @@ import { ProductionForm } from '../components/ProductionForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { ProductionFormData } from '../production.schema';
 import { Production } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 // ── Status config ──────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; border: string; dot: string }> = {
@@ -133,6 +134,7 @@ export const ProductionListPage = () => {
                 <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>Manajemen batch produksi</p>
               </div>
             </div>
+            {!READ_ONLY && (
             <PermissionGate permission="operations.production.create">
               <button onClick={() => setModalOpen(true)}
                 className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
@@ -143,6 +145,7 @@ export const ProductionListPage = () => {
                 Produksi Baru
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -255,7 +258,7 @@ export const ProductionListPage = () => {
                           </td>
                           <td style={{ padding: '12px 16px' }}>
                             <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {prod.status === 'draft' && (
+                              {prod.status === 'draft' && !READ_ONLY && (
                                 <PermissionGate permission="operations.production.edit">
                                   <button onClick={() => handleStart(prod.id, prod.batchNo)}
                                     style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#1e40af', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s' }}
@@ -265,7 +268,7 @@ export const ProductionListPage = () => {
                                   </button>
                                 </PermissionGate>
                               )}
-                              {prod.status === 'in_progress' && (
+                              {prod.status === 'in_progress' && !READ_ONLY && (
                                 <PermissionGate permission="operations.production.edit">
                                   <button onClick={() => handleComplete(prod.id, prod.batchNo)}
                                     style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#065f46', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s' }}
@@ -323,7 +326,7 @@ export const ProductionListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Batch Produksi Baru" subtitle="Isi detail batch produksi di bawah ini" onClose={() => setModalOpen(false)}>
           <ProductionForm onSubmit={handleCreate} onCancel={() => setModalOpen(false)} isLoading={isCreating} />
         </ModalShell>

@@ -6,6 +6,7 @@ import { WarehouseForm } from '../components/WarehouseForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { WarehouseFormData } from '../warehouse.schema';
 import { Warehouse } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 const STATUS_CONFIG = {
   active:   { label: 'Aktif',    bg: '#f0fdf4', text: '#065f46', border: '#bbf7d0', dot: '#10b981' },
@@ -134,6 +135,7 @@ export const WarehouseListPage = () => {
                 <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>Manajemen lokasi gudang</p>
               </div>
             </div>
+            {!READ_ONLY && (
             <PermissionGate permission="operations.warehouse.create">
               <button onClick={() => setCreateOpen(true)}
                 className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
@@ -144,6 +146,7 @@ export const WarehouseListPage = () => {
                 Tambah Gudang
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -250,6 +253,7 @@ export const WarehouseListPage = () => {
                           </td>
 
                           <td style={{ padding: '12px 16px' }}>
+                            {!READ_ONLY && (
                             <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                               <PermissionGate permission="operations.warehouse.edit">
                                 <button onClick={() => handleEdit(wh)}
@@ -268,6 +272,7 @@ export const WarehouseListPage = () => {
                                 </button>
                               </PermissionGate>
                             </div>
+                            )}
                           </td>
                         </tr>
                       );
@@ -316,14 +321,14 @@ export const WarehouseListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {createOpen && (
+      {createOpen && !READ_ONLY && (
         <ModalShell title="Tambah Gudang Baru" subtitle="Isi detail gudang di bawah ini" onClose={() => setCreateOpen(false)}>
           <WarehouseForm onSubmit={handleCreate} onCancel={() => setCreateOpen(false)} isLoading={isProcessing} />
         </ModalShell>
       )}
 
       {/* ── Edit modal ────────────────────────────────────── */}
-      {editOpen && selectedWarehouse && (
+      {editOpen && !READ_ONLY && selectedWarehouse && (
         <ModalShell title="Edit Gudang" subtitle="Perbarui informasi gudang" onClose={closeEdit}>
           <WarehouseForm warehouse={selectedWarehouse} onSubmit={handleUpdate} onCancel={closeEdit} isLoading={isProcessing} />
         </ModalShell>

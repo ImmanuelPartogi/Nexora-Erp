@@ -7,6 +7,7 @@ import { VendorForm } from '../components/VendorForm';
 import { PermissionGate } from '@/app/PermissionGate';
 import { VendorFormData } from '../vendor.schema';
 import { Vendor } from '@/shared/types';
+import { READ_ONLY } from '@/shared/config/readOnly';
 
 function TH({ children }: { children: React.ReactNode }) {
   return (
@@ -112,6 +113,7 @@ export const VendorListPage = () => {
                 <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>Manajemen database vendor dan pemasok</p>
               </div>
             </div>
+            {!READ_ONLY && (
             <PermissionGate permission="data.vendor.create">
               <button onClick={() => setModalOpen(true)}
                 className="flex items-center gap-1.5 font-semibold text-white rounded-xl"
@@ -122,6 +124,7 @@ export const VendorListPage = () => {
                 Tambah Vendor
               </button>
             </PermissionGate>
+            )}
           </div>
         </div>
       </div>
@@ -260,6 +263,7 @@ export const VendorListPage = () => {
                                 Detail
                               </button>
                             </PermissionGate>
+                            {!READ_ONLY && (
                             <PermissionGate permission="data.vendor.delete">
                               <button onClick={() => handleDelete(vendor.id, vendor.name)}
                                 style={{ padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#991b1b', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 7, cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.12s' }}
@@ -268,6 +272,7 @@ export const VendorListPage = () => {
                                 Hapus
                               </button>
                             </PermissionGate>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -316,7 +321,7 @@ export const VendorListPage = () => {
       </div>
 
       {/* ── Create modal ─────────────────────────────────── */}
-      {modalOpen && (
+      {modalOpen && !READ_ONLY && (
         <ModalShell title="Tambah Vendor Baru" subtitle="Isi detail vendor di bawah ini" onClose={() => setModalOpen(false)}>
           <VendorForm onSubmit={handleCreate} onCancel={() => setModalOpen(false)} isLoading={isCreating} />
         </ModalShell>
