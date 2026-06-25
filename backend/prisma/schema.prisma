@@ -1,0 +1,721 @@
+// NEXORA ERP - Database Schema
+// Aturan: UUID, Multi-tenant, Soft Delete, Audit Fields
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+// ============================================
+// CORE LAYER - Fondasi & Pengendali Sistem
+// ============================================
+
+// ============================================
+// CODE CONFIGURATION - Auto-generated System Codes
+// ============================================
+
+model CodeConfig {
+  id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
+  entity      String   // customer, vendor, product, employee, asset, warehouse, stock, production, transaction, etc.
+  prefix      String   // e.g., CUST, VEND, PRDCT, EMP, AST, WH, etc.
+  digitCount  Int      @default(4) @map("digit_count") // number of digits (e.g., 4 = 0001)
+  lastNumber  Int      @default(0) @map("last_number") // last generated number
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, entity])
+  @@index([companyId])
+  @@index([entity])
+  @@map("code_configs")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  companyUsers      CompanyUser[]
+  auditLogs         AuditLog[]
+  createdRecords    AuditLog[]      @relation("CreatedBy")
+  approvals         Approval[]
+  notifications     Notification[]
+  createdCompanies  Company[]       @relation("CompanyCreator")
+  employee          Employee?     
+
+  @@map("users")
+}
+
+model Company {
+  id           String   @id @default(uuid())
+  name         String
+  industryType String?  @map("industry_type")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  createdBy    String   @map("created_by")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
+
+  // Relations
+  creator         User              @relation("CompanyCreator", fields: [createdBy], references: [id])
+  companyUsers    CompanyUser[]
+  companyModules CompanyModule[]
+  roles          Role[]
+  codeConfigs    CodeConfig[]
+  customers      Customer[]
+  vendors        Vendor[]
+  products       Product[]
+  assets         Asset[]
+  locations      Location[]
+  employees      Employee[]
+  leases         Lease[]
+  warehouses     Warehouse[]
+  productions    Production[]
+  transactions   Transaction[]
+  purchases      Purchase[]
+  operationPoints OperationPoint[]
+  auditLogs      AuditLog[]
+
+  @@index([createdAt])
+  @@index([isActive])
+  @@map("companies")
+}
+
+model CompanyUser {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  companyId String   @map("company_id")
+  roleId    String   @map("role_id")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, companyId])
+  @@index([companyId])
+  @@index([userId])
+  @@map("company_users")
+}
+
+model Module {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  layer       String   // core, data, operations, support, reporting
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  companyModules CompanyModule[]
+  permissions    Permission[]
+
+  @@index([layer])
+  @@map("modules")
+}
+
+model CompanyModule {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  moduleId  String   @map("module_id")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  module  Module  @relation(fields: [moduleId], references: [id])
+
+  @@unique([companyId, moduleId])
+  @@index([companyId])
+  @@map("company_modules")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String
+  companyId   String   @map("company_id")
+  isDefault   Boolean  @default(false) @map("is_default") // owner, admin, staff
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyUsers    CompanyUser[]
+  rolePermissions RolePermission[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  moduleId    String   @map("module_id")
+  action      String   // view, create, edit, delete, approve
+  code        String   @unique // e.g. "transactions.view"
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  module          Module           @relation(fields: [moduleId], references: [id])
+  rolePermissions RolePermission[]
+
+  @@index([moduleId])
+  @@index([action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(uuid())
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@map("role_permissions")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  userId     String   @map("user_id")
+  createdBy  String?  @map("created_by")
+  module     String
+  action     String   // create, update, delete
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  oldData    String? @map("old_data")
+  newData    String? @map("new_data")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String? @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+  creator User?   @relation("CreatedBy", fields: [createdBy], references: [id])
+
+  @@index([companyId])
+  @@index([userId])
+  @@index([createdBy])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================
+// DATA LAYER - Master Data & Referensi
+// ============================================
+
+model Customer {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  name      String
+  code      String?
+  email     String?
+  phone     String?
+  address   String?
+  notes     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String   @map("created_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String?  @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  leases  Lease[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([isActive])
+  @@map("customers")
+}
+
+model Vendor {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  name      String
+  code      String?
+  email     String?
+  phone     String?
+  address   String?
+  notes     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String   @map("created_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String?  @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  purchases Purchase[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([isActive])
+  @@map("vendors")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
+  name        String
+  code        String?
+  type        String?
+  category    String?
+  unit        String?
+  price       Decimal?
+  cost        Decimal?
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  company             Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stocks              Stock[]
+  stockMovements      StockMovement[] 
+  productionItems     ProductionItem[]
+  operationActivities OperationActivity[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([type])
+  @@index([isActive])
+  @@map("products")
+}
+
+model Asset {
+  id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
+  name        String
+  code        String?
+  type        String?  // building, vehicle, equipment
+  locationId  String?  @map("location_id")
+  condition   String?  // good, fair, poor
+  purchaseDate DateTime? @map("purchase_date")
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  location Location? @relation(fields: [locationId], references: [id])
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([locationId])
+  @@index([isActive])
+  @@map("assets")
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  name      String
+  type      String?  // warehouse, office, branch
+  address   String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String   @map("created_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String?  @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  assets  Asset[]
+
+  @@index([companyId])
+  @@index([isActive])
+  @@map("locations")
+}
+
+model Employee {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  userId     String?  @unique @map("user_id")
+  name       String
+  code       String?
+  email      String?
+  phone      String?
+  position   String?
+  department String?
+  joinDate   DateTime? @map("join_date")
+  salary     Decimal?
+  status     String   @default("active") // active, inactive, resigned
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  createdBy  String   @map("created_by")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  updatedBy  String?  @map("updated_by")
+  deletedAt  DateTime? @map("deleted_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id]) 
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([userId])   
+  @@index([status])
+  @@index([isActive])
+  @@map("employees")
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  color     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  taggables Taggable[]
+
+  @@map("tags")
+}
+
+model Taggable {
+  id         String   @id @default(uuid())
+  tagId      String   @map("tag_id")
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  tag Tag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, entityType, entityId])
+  @@index([entityType, entityId])
+  @@map("taggables")
+}
+
+// ============================================
+// OPERATIONS LAYER - Aktivitas Bisnis
+// ============================================
+
+model Lease {
+  id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
+  customerId String   @map("customer_id")
+  unitName   String   @map("unit_name")
+  startDate  DateTime @map("start_date")
+  endDate    DateTime @map("end_date")
+  amount     Decimal
+  status     String   @default("active") // active, completed, cancelled
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  createdBy  String   @map("created_by")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  updatedBy  String?  @map("updated_by")
+  deletedAt  DateTime? @map("deleted_at")
+
+  // Relations
+  company  Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([companyId])
+  @@index([customerId])
+  @@index([status])
+  @@index([startDate])
+  @@map("leases")
+}
+
+model Warehouse {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  name      String
+  code      String?
+  address   String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String   @map("created_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String?  @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  stocks  Stock[]
+  stockMovements StockMovement[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([isActive])
+  @@map("warehouses")
+}
+
+model Stock {
+  id          String   @id @default(uuid())
+  productId   String   @map("product_id")
+  warehouseId String   @map("warehouse_id")
+  quantity    Decimal
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  product   Product   @relation(fields: [productId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@unique([productId, warehouseId])
+  @@index([warehouseId])
+  @@map("stocks")
+}
+
+model StockMovement {
+  id          String   @id @default(uuid())
+  productId   String   @map("product_id")
+  warehouseId String   @map("warehouse_id")
+  type        String   // in, out, adjustment
+  quantity    Decimal
+  referenceNo String?  @map("reference_no")
+  notes       String?
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  product   Product   @relation(fields: [productId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@index([productId])
+  @@index([warehouseId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+model Production {
+  id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
+  code        String?
+  batchNo     String?  @map("batch_no")
+  date        DateTime
+  status      String   @default("draft")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  productionItems ProductionItem[]
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([status])
+  @@index([date])
+  @@map("productions")
+}
+
+model ProductionItem {
+  id           String   @id @default(uuid())
+  productionId String   @map("production_id")
+  productId    String   @map("product_id")
+  quantity     Decimal
+  type         String   // input, output
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  production Production @relation(fields: [productionId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id])
+
+  @@index([productionId])
+  @@index([productId])
+  @@index([type])
+  @@map("production_items")
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
+  code        String?
+  type        String   // income, expense
+  category    String?
+  amount      Decimal
+  date        DateTime
+  status      String   @default("draft") // draft, approved
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([type])
+  @@index([status])
+  @@index([date])
+  @@map("transactions")
+}
+
+model Purchase {
+  id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
+  vendorId    String   @map("vendor_id")
+  code        String?
+  date        DateTime
+  total       Decimal
+  status      String   @default("draft") // draft, approved, received
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdBy   String   @map("created_by")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vendor  Vendor  @relation(fields: [vendorId], references: [id])
+
+  @@unique([companyId, code])
+  @@index([companyId])
+  @@index([vendorId])
+  @@index([status])
+  @@index([date])
+  @@map("purchases")
+}
+
+model OperationPoint {
+  id        String   @id @default(uuid())
+  companyId String   @map("company_id")
+  name      String
+  type      String?  // branch, outlet, pos
+  address   String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  createdBy String   @map("created_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String?  @map("updated_by")
+  deletedAt DateTime? @map("deleted_at")
+
+  // Relations
+  company             Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  operationActivities OperationActivity[]
+
+  @@index([companyId])
+  @@index([isActive])
+  @@map("operation_points")
+}
+
+model OperationActivity {
+  id               String   @id @default(uuid())
+  operationPointId String   @map("operation_point_id")
+  productId        String?  @map("product_id")
+  date             DateTime
+  quantity         Decimal?
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  createdBy        String   @map("created_by")
+
+  // Relations
+  operationPoint OperationPoint @relation(fields: [operationPointId], references: [id], onDelete: Cascade)
+  product        Product?       @relation(fields: [productId], references: [id])
+
+  @@index([operationPointId])
+  @@index([productId])
+  @@index([date])
+  @@map("operation_activities")
+}
+
+// ============================================
+// SUPPORT LAYER - Pengaman & Pengatur
+// ============================================
+
+model Document {
+  id         String   @id @default(uuid())
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  fileName   String   @map("file_name")
+  filePath   String   @map("file_path")
+  fileSize   Int      @map("file_size")
+  mimeType   String   @map("mime_type")
+  uploadedBy String   @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@map("documents")
+}
+
+model Approval {
+  id         String   @id @default(uuid())
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  approverId String   @map("approver_id")
+  status     String   @default("pending") // pending, approved, rejected
+  level      Int      @default(1)
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  approver User @relation(fields: [approverId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([approverId])
+  @@index([status])
+  @@map("approvals")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   // reminder, alert, approval
+  title     String
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
