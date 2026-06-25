@@ -8,7 +8,7 @@ import { disconnectPrisma } from './config/database';
 
 const app = createApp();
 
-const server = app.listen(ENV.PORT, () => {
+const server = app.listen(ENV.PORT, '0.0.0.0', () => {
   console.log('🚀 NEXORA ERP Backend');
   console.log(`📡 Server running on port ${ENV.PORT}`);
   console.log(`🌍 Environment: ${ENV.NODE_ENV}`);
