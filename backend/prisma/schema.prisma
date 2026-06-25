@@ -2,7 +2,7 @@
 // Aturan: UUID, Multi-tenant, Soft Delete, Audit Fields
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
