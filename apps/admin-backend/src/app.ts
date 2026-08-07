@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './routes/auth.routes';
+import adminUserRoutes from './routes/admin-users.routes';
 
 export const createApp = () => {
   const app = express();
@@ -19,6 +20,7 @@ export const createApp = () => {
 
   // API Routes
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/admin-users', adminUserRoutes);
 
   return app;
 };
