@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import authRoutes from './routes/auth.routes';
 
 export const createApp = () => {
   const app = express();
@@ -15,6 +16,9 @@ export const createApp = () => {
       timestamp: new Date().toISOString(),
     });
   });
+
+  // API Routes
+  app.use('/api/v1/auth', authRoutes);
 
   return app;
 };
