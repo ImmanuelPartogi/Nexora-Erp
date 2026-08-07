@@ -6,7 +6,7 @@ dotenv.config();
 
 /**
  * Comma-separated list of allowed CORS origins.
- * Supports multiple frontend dev servers (e.g. Vite ports 5173/5174, web 3001).
+ * Supports multiple frontend dev server ports (e.g. Vite 5173/5174/3001).
  */
 const DEFAULT_CORS_ORIGINS = [
   'http://localhost:5173',
