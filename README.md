@@ -34,7 +34,7 @@ cd backend
 npm install
 
 # Frontend (from project root)
-cd ../frontend
+cd ../apps/tenant-frontend
 npm install
 ```
 
@@ -61,7 +61,7 @@ Required variables (see `backend/.env.example`):
 **Frontend** — copy and configure:
 
 ```bash
-cp frontend/.env.example frontend/.env
+cp apps/tenant-frontend/.env.example apps/tenant-frontend/.env
 ```
 
 | Variable | Description |
@@ -89,7 +89,7 @@ npm run prisma:seed
 # Terminal 1 — backend (from backend/)
 npm run dev
 
-# Terminal 2 — frontend (from frontend/)
+# Terminal 2 — tenant-frontend (from apps/tenant-frontend/)
 npm run dev
 ```
 
@@ -121,7 +121,7 @@ Nexora-Erp/
 │           ├── middleware/      # auth, tenant, permission, validation, audit
 │           ├── types/           # Express type augmentations
 │           └── utils/           # hash, jwt, response, validation
-└── frontend/
+└── apps/tenant-frontend/
     └── src/
         ├── app/                 # App shell, routing, providers
         ├── modules/             # Feature modules mirroring backend domains
@@ -156,7 +156,7 @@ module/
 | `npm run prisma:studio` | Open Prisma Studio GUI |
 | `npm run prisma:seed` | Seed reference data |
 
-### Frontend (`cd frontend`)
+### Tenant Frontend (`cd apps/tenant-frontend`)
 
 | Script | Description |
 |--------|-------------|

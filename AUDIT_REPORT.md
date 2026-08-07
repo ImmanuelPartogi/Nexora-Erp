@@ -322,7 +322,7 @@ npm run prisma:seed
 npm run dev                 # http://localhost:3000
 
 # ── Frontend ─────────────────────────────────
-cd frontend
+cd apps/tenant-frontend
 npm install
 # buat frontend/.env dengan:
 #   VITE_API_URL=http://localhost:3000/api/v1   ← (catatan: README menyebut VITE_API_BASE_URL — mismatch)
