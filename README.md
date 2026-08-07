@@ -29,8 +29,8 @@ Built with a clear separation between a TypeScript/Express + Prisma backend and 
 ### 1. Install dependencies
 
 ```bash
-# Backend
-cd backend
+# Tenant Backend
+cd apps/tenant-backend
 npm install
 
 # Frontend (from project root)
@@ -43,10 +43,10 @@ npm install
 **Backend** — copy and fill in real values:
 
 ```bash
-cp backend/.env.example backend/.env
+cp apps/tenant-backend/.env.example apps/tenant-backend/.env
 ```
 
-Required variables (see `backend/.env.example`):
+Required variables (see `apps/tenant-backend/.env.example`):
 
 | Variable | Description |
 |----------|-------------|
@@ -70,7 +70,7 @@ cp apps/tenant-frontend/.env.example apps/tenant-frontend/.env
 
 ### 3. Database setup
 
-From the `backend/` directory:
+From the `apps/tenant-backend/` directory:
 
 ```bash
 # Generate Prisma client
@@ -86,7 +86,7 @@ npm run prisma:seed
 ### 4. Run the application
 
 ```bash
-# Terminal 1 — backend (from backend/)
+# Terminal 1 — tenant-backend (from apps/tenant-backend/)
 npm run dev
 
 # Terminal 2 — tenant-frontend (from apps/tenant-frontend/)
@@ -103,7 +103,7 @@ npm run dev
 
 ```
 Nexora-Erp/
-├── backend/
+├── apps/tenant-backend/
 │   ├── prisma/
 │   │   ├── schema.prisma        # Database schema
 │   │   └── seed.ts              # Reference data seeding
@@ -144,7 +144,7 @@ module/
 
 ## Available Scripts
 
-### Backend (`cd backend`)
+### Tenant Backend (`cd apps/tenant-backend`)
 
 | Script | Description |
 |--------|-------------|

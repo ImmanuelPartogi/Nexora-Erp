@@ -2,9 +2,9 @@
   "name": "nexora-erp",
   "private": true,
   "scripts": {
-    "dev": "npm run dev --prefix backend",
-    "prisma:generate": "npm run prisma:generate --prefix backend",
-    "prisma:migrate": "npm run prisma:migrate --prefix backend"
+    "dev": "npm run dev --prefix apps/tenant-backend",
+    "prisma:generate": "npm run prisma:generate --prefix apps/tenant-backend",
+    "prisma:migrate": "npm run prisma:migrate --prefix apps/tenant-backend"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

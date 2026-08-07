@@ -313,7 +313,7 @@ Client (Axios + JWT in localStorage + X-Company-Id header)
 
 ```bash
 # ── Backend ──────────────────────────────────
-cd backend
+cd apps/tenant-backend
 npm install
 cp .env.example .env        # isi DATABASE_URL & JWT_SECRET
 npm run prisma:generate
@@ -329,7 +329,7 @@ npm install
 npm run dev                 # http://localhost:5173
 
 # ── Root shortcut ────────────────────────────
-npm run dev                 # = npm run dev --prefix backend
+npm run dev                 # = npm run dev --prefix apps/tenant-backend
 ```
 
 **Variabel Environment yang Dibutuhkan:**
