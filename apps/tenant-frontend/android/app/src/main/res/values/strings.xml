@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Nexora Tenant</string>
+    <string name="title_activity_main">Nexora Tenant</string>
+    <string name="package_name">com.nexora.tenantfrontend</string>
+    <string name="custom_url_scheme">com.nexora.tenantfrontend</string>
+</resources>
