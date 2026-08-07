@@ -11,14 +11,5 @@
     "dev": "npm run dev --prefix apps/tenant-backend",
     "prisma:generate": "npm run prisma:generate --prefix apps/tenant-backend",
     "prisma:migrate": "npm run prisma:migrate --prefix apps/tenant-backend"
-  },
-  "dependencies": {
-    "@prisma/client": "^5.22.0",
-    "uuid": "^13.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^25.0.2",
-    "@types/uuid": "^10.0.0",
-    "prisma": "^5.22.0"
   }
 }
