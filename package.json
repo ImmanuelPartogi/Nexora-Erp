@@ -1,6 +1,12 @@
 {
   "name": "nexora-erp",
   "private": true,
+  "workspaces": [
+    "apps/tenant-backend",
+    "apps/tenant-frontend",
+    "apps/admin-backend",
+    "apps/admin-frontend"
+  ],
   "scripts": {
     "dev": "npm run dev --prefix apps/tenant-backend",
     "prisma:generate": "npm run prisma:generate --prefix apps/tenant-backend",
