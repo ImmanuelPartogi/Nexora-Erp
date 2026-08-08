@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Inter-service REST API endpoints (`/api/v1/internal/*`) in `tenant-backend` protected by `internalAuthMiddleware` with timing-safe (`crypto.timingSafeEqual`) header authentication (`X-Internal-Secret`).
   - Isolated internal route prefix `/api/v1/internal` separated from public tenant routes.
 
+### Security
+- **Remediated KRIT-003 Owner Privilege Escalation Vector**:
+  - Added `isSystemOwner` (boolean) flag to `Role` model in `schema.prisma`.
+  - Refactored `permission.middleware.ts`, `owner-only.middleware.ts`, and `role.service.ts` to check `role.isSystemOwner === true` instead of string matching `role.name === 'Owner'`.
+  - Added strict Zod and service-level validation blocking creation/updating of roles named "Owner" (case-insensitive, trimmed) from public API endpoints.
+  - Added 11 automated Vitest unit and integration tests covering system owner bypass logic, regression prevention, and role API validation.
+
 ### Known Issues / Technical Debt
 - **Frontend Monolithic Bundle Size**: Vite build warning for single bundle chunk (~902 KB minified / ~213 KB gzipped). Route-based code splitting using `React.lazy()` / dynamic `import()` is planned for a future optimization phase.
 

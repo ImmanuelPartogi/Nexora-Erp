@@ -26,8 +26,7 @@
 - **[P5] Admin Panel Monitoring & Inter-Service API**: ✅ **SELESAI** (RequestLog model, `/api/v1/internal/*`, `/api/v1/tenants`, `/api/v1/analytics`).
 - **[P3] Konsolidasi 11 Komponen UI Duplikat**: ✅ **SELESAI** (11 duplikat dihapus, disatukan di `@/shared/components/ui`).
 - **[P4] Generic `useResource<T>` Hook**: ✅ **SELESAI** (Dibuat `useResource.ts`, 14 hook modul direfactor).
-- **[KRIT-003] Owner Bypass Privilege Escalation Vector**: 🚨 **PRIORITAS BERIKUTNYA (PENDING - OUT OF SCOPE BATCH INI)**
-  - *Catatan*: `permission.middleware.ts:45-53` melakukan bypass izin jika `role.name === 'Owner'`. Celah ini merupakan *privilege escalation vector* kritis (bukan sekadar debt teknis) jika user biasa dapat membuat role bernama "Owner". Perlu diganti menjadi check flag `role.isSystemOwner` di batch perbaikan keamanan berikutnya.
+- **[KRIT-003] Owner Bypass Privilege Escalation Vector**: ✅ **SELESAI** (Ditambahkan `isSystemOwner` boolean flag di `Role` schema, pengecekan `permission.middleware.ts`, `owner-only.middleware.ts`, dan `role.service.ts` diperbarui ke `role.isSystemOwner === true`, validasi Zod & service menolak nama "Owner" dari input client, serta ditambahkan 11 test otomatis Vitest).
 
 **Kesimpulan 1 kalimat:** Arsitektur modular multi-tenant yang solid dengan dokumentasi dan middleware security yang rapi, namun terdapat celah secrets management, duplikasi frontend masif, repository yang tidak tenant-safe secara defensif, dan **nol test coverage** yang harus segera diatasi sebelum production.
 
