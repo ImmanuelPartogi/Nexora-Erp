@@ -1,0 +1,9 @@
+{
+  "title": "Manajemen Produk",
+  "addNew": "Tambah Produk Baru",
+  "fields": {
+    "sku": "SKU",
+    "name": "Nama Produk",
+    "price": "Harga"
+  }
+}

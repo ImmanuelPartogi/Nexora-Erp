@@ -16,9 +16,11 @@
     "@hookform/resolvers": "^3.3.3",
     "axios": "^1.6.2",
     "clsx": "^2.0.0",
+    "i18next": "^26.3.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.49.0",
+    "react-i18next": "^17.0.11",
     "react-router-dom": "^6.21.0",
     "zod": "^3.22.4",
     "zustand": "^4.4.7"

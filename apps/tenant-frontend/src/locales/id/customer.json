@@ -1,0 +1,23 @@
+{
+  "title": "Manajemen Pelanggan",
+  "subtitle": "Kelola data pelanggan dan informasi kontak",
+  "addNew": "Tambah Pelanggan Baru",
+  "edit": "Ubah Data Pelanggan",
+  "deleteConfirm": "Apakah Anda yakin ingin menghapus pelanggan ini?",
+  "fields": {
+    "code": "Kode Pelanggan",
+    "name": "Nama Pelanggan",
+    "email": "Email",
+    "phone": "Nomor Telepon",
+    "address": "Alamat",
+    "status": "Status"
+  },
+  "placeholders": {
+    "search": "Cari berdasarkan nama atau kode pelanggan...",
+    "name": "Masukkan nama pelanggan",
+    "email": "contoh@email.com",
+    "phone": "08123456789",
+    "address": "Alamat lengkap pelanggan"
+  },
+  "emptyState": "Belum ada data pelanggan yang terdaftar."
+}

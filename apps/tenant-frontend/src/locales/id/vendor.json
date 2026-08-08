@@ -1,0 +1,9 @@
+{
+  "title": "Manajemen Pemasok",
+  "addNew": "Tambah Pemasok Baru",
+  "fields": {
+    "name": "Nama Pemasok",
+    "contactPerson": "Penanggung Jawab",
+    "phone": "Nomor Telepon"
+  }
+}

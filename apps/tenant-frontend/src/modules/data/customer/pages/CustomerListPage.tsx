@@ -1,6 +1,7 @@
 // FILE: frontend/src/modules/data/customer/pages/CustomerListPage.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { customerApi } from '@/shared/api/customer.api';
 import { useCustomers } from '../hooks/useCustomers';
 import { CustomerForm } from '../components/CustomerForm';
@@ -70,6 +71,7 @@ function ModalShell({ title, subtitle, onClose, children }: { title: string; sub
 // ════════════════════════════════════════════════════════════════
 export const CustomerListPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['customer', 'common']);
   const [search,     setSearch]     = useState('');
   const [page,       setPage]       = useState(1);
   const [modalOpen,  setModalOpen]  = useState(false);
@@ -125,8 +127,8 @@ export const CustomerListPage = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="font-bold text-slate-900" style={{ fontSize: 17, lineHeight: 1.2 }}>Customer</h1>
-                <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>Kelola database pelanggan perusahaan</p>
+                <h1 className="font-bold text-slate-900" style={{ fontSize: 17, lineHeight: 1.2 }}>{t('customer:title')}</h1>
+                <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 2 }}>{t('customer:subtitle')}</p>
               </div>
             </div>
 
@@ -142,7 +144,7 @@ export const CustomerListPage = () => {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
-                Tambah Customer
+                {t('customer:addNew')}
               </button>
             </PermissionGate>
             )}

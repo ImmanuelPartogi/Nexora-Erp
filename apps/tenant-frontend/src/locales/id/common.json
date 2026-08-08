@@ -1,0 +1,26 @@
+{
+  "actions": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "edit": "Ubah",
+    "delete": "Hapus",
+    "search": "Cari",
+    "add": "Tambah",
+    "back": "Kembali",
+    "filter": "Filter",
+    "loading": "Memuat...",
+    "confirm": "Konfirmasi"
+  },
+  "status": {
+    "active": "Aktif",
+    "inactive": "Nonaktif",
+    "pending": "Menunggu",
+    "approved": "Disetujui",
+    "rejected": "Ditolak"
+  },
+  "messages": {
+    "noData": "Tidak ada data ditemukan",
+    "success": "Berhasil",
+    "error": "Terjadi kesalahan"
+  }
+}
