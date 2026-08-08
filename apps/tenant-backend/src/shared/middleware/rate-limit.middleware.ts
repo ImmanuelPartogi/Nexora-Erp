@@ -15,7 +15,7 @@ export const loginLimiter = rateLimit({
   limit: 5, // max 5 attempts per window
   standardHeaders: true, // Return rate limit info in standard RateLimit-* headers
   legacyHeaders: false, // Disable X-RateLimit-* headers
-  validate: { xForwardedForHeader: false, ip: false },
+  validate: false,
   keyGenerator: (req: Request): string => {
     const ip = req.ip || req.socket.remoteAddress || 'unknown-ip';
     const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : 'unknown-email';
