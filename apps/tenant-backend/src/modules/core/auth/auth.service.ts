@@ -128,6 +128,7 @@ export class AuthService {
           name: 'Owner',
           companyId: company.id,
           isDefault: true,
+          isSystemOwner: true,
           description: 'Full system access',
         },
       });

@@ -125,6 +125,10 @@ export class RoleService {
 }
 
   async create(data: CreateRoleRequest, companyId: string, _createdBy: string) {
+    if (data.name.trim().toLowerCase() === 'owner') {
+      throw new ConflictError('Role name "Owner" is reserved for system owner role');
+    }
+
     // Check duplicate name
     const existing = await prisma.role.findFirst({
       where: {
@@ -147,14 +151,14 @@ export class RoleService {
       throw new NotFoundError('One or more permissions not found');
     }
 
-    // ✅ FIX: Create role WITHOUT createdBy field
+    // ✅ Create role with isSystemOwner: false (read-only from public API)
     const role = await prisma.role.create({
       data: {
         id: crypto.randomUUID(),
-        name: data.name,
+        name: data.name.trim(),
         description: data.description,
         companyId,
-        // ❌ REMOVED: createdBy (field tidak ada di schema)
+        isSystemOwner: false,
         rolePermissions: {
           create: permissions.map((perm) => ({
             id: crypto.randomUUID(),
@@ -184,10 +188,19 @@ export class RoleService {
     companyId: string,
     _updatedBy: string
   ) {
-    await this.getById(id, companyId);
+    const currentRole = await this.getById(id, companyId);
 
-    // Check duplicate name
+    if (currentRole.isSystemOwner) {
+      if (data.name && data.name.trim().toLowerCase() !== 'owner') {
+        throw new ConflictError('Cannot rename System Owner role');
+      }
+    }
+
     if (data.name) {
+      if (data.name.trim().toLowerCase() === 'owner' && !currentRole.isSystemOwner) {
+        throw new ConflictError('Role name "Owner" is reserved for system owner role');
+      }
+
       const existing = await prisma.role.findFirst({
         where: {
           name: data.name,
@@ -226,11 +239,10 @@ export class RoleService {
       });
     }
 
-    // ✅ FIX: Update role WITHOUT updatedBy field
     const updatedCount = await prisma.role.updateMany({
       where: { id, companyId, deletedAt: null },
       data: {
-        name: data.name,
+        name: data.name ? data.name.trim() : undefined,
         description: data.description,
         updatedAt: new Date(),
       },
@@ -261,9 +273,9 @@ export class RoleService {
   async delete(id: string, companyId: string) {
     const role = await this.getById(id, companyId);
 
-    // ✅ PROTECTION: Prevent deletion of Owner role
-    if (role.name.toLowerCase() === 'owner') {
-      throw new ConflictError('Cannot delete Owner role. This role is required for system integrity.');
+    // ✅ PROTECTION: Prevent deletion of System Owner role
+    if (role.isSystemOwner) {
+      throw new ConflictError('Cannot delete System Owner role. This role is required for system integrity.');
     }
 
     // Check if role is assigned to users

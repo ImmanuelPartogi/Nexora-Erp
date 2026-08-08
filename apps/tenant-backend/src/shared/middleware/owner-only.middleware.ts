@@ -26,7 +26,7 @@ export const requireOwner = async (
         userId: req.user.id,
         companyId: req.activeCompanyId,
         isActive: true,
-        role: { name: 'Owner' },
+        role: { isSystemOwner: true, deletedAt: null },
       },
       select: { id: true },
     });
@@ -54,7 +54,7 @@ export async function isOwner(
       userId,
       companyId,
       isActive: true,
-      role: { name: 'Owner' },
+      role: { isSystemOwner: true, deletedAt: null },
     },
   });
   return count > 0;

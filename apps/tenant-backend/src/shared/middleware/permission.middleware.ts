@@ -38,7 +38,7 @@ export async function checkPermission(
   companyId: string,
   permissionCode: string
 ): Promise<boolean> {
-  // 🛡️ OWNER BYPASS: Role bernama "Owner" selalu punya akses penuh ke SEMUA
+  // 🛡️ SYSTEM OWNER BYPASS: Role dengan isSystemOwner: true selalu punya akses penuh ke SEMUA
   // endpoint sesuai desain sistem ("Owner mendapat SEMUA permission di company-nya").
   // Ini jaminan defensif agar Owner tidak pernah terkunci meski ada ketidaksesuaian
   // data permission di database.
@@ -47,7 +47,7 @@ export async function checkPermission(
       userId,
       companyId,
       isActive: true,
-      role: { name: 'Owner' },
+      role: { isSystemOwner: true, deletedAt: null },
     },
   });
   if (ownerCount > 0) return true;

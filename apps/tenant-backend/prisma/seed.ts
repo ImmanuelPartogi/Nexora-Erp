@@ -254,10 +254,10 @@ async function main() {
   console.log('🎭  Seeding roles per company...');
 
   // Role structure per industry (owner yang merancang, maka beda-beda)
-  const roleDefsByCompany: Record<string, { name: string; isDefault: boolean; desc: string }[]> = {
+  const roleDefsByCompany: Record<string, { name: string; isDefault: boolean; isSystemOwner?: boolean; desc: string }[]> = {
     // PT Maju Bersama Sejahtera — Manufacturing
     [c1.id]: [
-      { name: 'Owner',          isDefault: true,  desc: 'Pemilik perusahaan — akses penuh ke semua fitur' },
+      { name: 'Owner',          isDefault: true,  isSystemOwner: true,  desc: 'Pemilik perusahaan — akses penuh ke semua fitur' },
       { name: 'Administrator',  isDefault: false, desc: 'Admin IT & sistem ERP perusahaan' },
       { name: 'Manajer Pabrik', isDefault: false, desc: 'Kepala operasional pabrik dan produksi' },
       { name: 'Finance',        isDefault: false, desc: 'Staf keuangan, akuntansi, dan pajak' },
@@ -270,7 +270,7 @@ async function main() {
     ],
     // CV Karya Mandiri Digital — Trading & Retail
     [c2.id]: [
-      { name: 'Owner',          isDefault: true,  desc: 'Pemilik perusahaan — akses penuh ke semua fitur' },
+      { name: 'Owner',          isDefault: true,  isSystemOwner: true,  desc: 'Pemilik perusahaan — akses penuh ke semua fitur' },
       { name: 'Administrator',  isDefault: false, desc: 'Admin operasional toko dan sistem' },
       { name: 'Kepala Toko',    isDefault: false, desc: 'Manajer toko dan operasional outlet' },
       { name: 'Kasir',          isDefault: false, desc: 'Staf kasir dan transaksi penjualan' },
@@ -282,7 +282,7 @@ async function main() {
     ],
     // PT Nusantara Property Group — Real Estate
     [c3.id]: [
-      { name: 'Owner',          isDefault: true,  desc: 'Pemilik perusahaan — akses penuh ke semua fitur' },
+      { name: 'Owner',          isDefault: true,  isSystemOwner: true,  desc: 'Pemilik perusahaan — akses penuh ke semua fitur' },
       { name: 'Direktur',       isDefault: false, desc: 'Direktur operasional dan pengembangan bisnis' },
       { name: 'Finance & Akuntansi', isDefault: false, desc: 'Keuangan, akuntansi, dan perpajakan' },
       { name: 'Legal & Notaris', isDefault: false, desc: 'Urusan hukum, PPJB, dan sertifikasi' },
@@ -294,7 +294,7 @@ async function main() {
     ],
     // UD Sumber Rejeki Food — Food & Beverage
     [c4.id]: [
-      { name: 'Owner',          isDefault: true,  desc: 'Pemilik perusahaan — akses penuh ke semua fitur' },
+      { name: 'Owner',          isDefault: true,  isSystemOwner: true,  desc: 'Pemilik perusahaan — akses penuh ke semua fitur' },
       { name: 'Manajer Operasional', isDefault: false, desc: 'Kepala operasional produksi dan distribusi' },
       { name: 'Finance',        isDefault: false, desc: 'Keuangan, kas, dan pembukuan' },
       { name: 'Kepala Produksi', isDefault: false, desc: 'Kepala dapur dan kualitas produksi' },
@@ -309,11 +309,12 @@ async function main() {
   await prisma.role.createMany({
     data: companies.flatMap(co =>
       roleDefsByCompany[co.id].map(r => ({
-        id:          uuid(),
-        companyId:   co.id,
-        name:        r.name,
-        isDefault:   r.isDefault,
-        description: r.desc,
+        id:            uuid(),
+        companyId:     co.id,
+        name:          r.name,
+        isDefault:     r.isDefault,
+        isSystemOwner: r.isSystemOwner ?? false,
+        description:   r.desc,
       }))
     ),
   });
@@ -1138,7 +1139,7 @@ async function main() {
       const key = `${prod.id}::${wh.id}`;
       if (!stockSeen.has(key)) {
         stockSeen.add(key);
-        stockRows.push({ id: uuid(), productId: prod.id, warehouseId: wh.id, quantity: randDec(0, 1000, 3) });
+        stockRows.push({ id: uuid(), companyId: wh.companyId, productId: prod.id, warehouseId: wh.id, quantity: randDec(0, 1000, 3) });
       }
     }
   }
@@ -1156,7 +1157,7 @@ async function main() {
       cuRows.some(cu => cu.userId === u.id && cu.companyId === co.id)
     );
     smRows.push({
-      id: uuid(), productId: randPick(prods).id, warehouseId: wh.id, type,
+      id: uuid(), companyId: wh.companyId, productId: randPick(prods).id, warehouseId: wh.id, type,
       quantity: randDec(1, 200, 3),
       referenceNo: `${type === 'in' ? 'STIN' : type === 'out' ? 'STOUT' : 'STADJ'}-${pad(i, 6)}`,
       notes: `Mutasi stok ${type} #${i}`,
@@ -1392,7 +1393,7 @@ async function main() {
       const co = companies.find(c => c.id === (e as any).companyId)!;
       const owner = ownerMap.get(co?.id ?? c1.id)!;
       docRows.push({
-        id: uuid(), entityType: type, entityId: e.id,
+        id: uuid(), companyId: co?.id ?? c1.id, entityType: type, entityId: e.id,
         fileName:   `${type}-${((e as any).code ?? e.id.slice(0,8))}.${dt.ext}`,
         filePath:   `/uploads/${type}s/${e.id}/document.${dt.ext}`,
         fileSize:   randInt(50000, 8000000), mimeType: dt.mime,
@@ -1422,7 +1423,7 @@ async function main() {
       for (let lvl = 1; lvl <= randInt(1, 2); lvl++) {
         const status = randPick(apStatuses);
         apRows.push({
-          id: uuid(), entityType: type, entityId: item.id,
+          id: uuid(), companyId: co?.id ?? c1.id, entityType: type, entityId: item.id,
           approverId: owner.id, status, level: lvl,
           notes: status === 'approved' ? 'Disetujui oleh owner' : status === 'rejected' ? 'Ditolak — perlu revisi' : null,
         });

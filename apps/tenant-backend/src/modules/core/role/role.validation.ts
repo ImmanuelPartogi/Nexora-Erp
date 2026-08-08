@@ -14,7 +14,11 @@ export const createRoleSchema = z.object({
   name: z
     .string()
     .min(2, 'Name must be at least 2 characters')
-    .max(100, 'Name must not exceed 100 characters'),
+    .max(100, 'Name must not exceed 100 characters')
+    .refine(
+      (val) => val.trim().toLowerCase() !== 'owner',
+      'Role name "Owner" is reserved for system owner role'
+    ),
   description: z
     .string()
     .max(500, 'Description must not exceed 500 characters')
@@ -36,6 +40,10 @@ export const updateRoleSchema = z.object({
     .string()
     .min(2, 'Name must be at least 2 characters')
     .max(100, 'Name must not exceed 100 characters')
+    .refine(
+      (val) => val.trim().toLowerCase() !== 'owner',
+      'Role name "Owner" is reserved for system owner role'
+    )
     .optional(),
   description: z
     .string()
