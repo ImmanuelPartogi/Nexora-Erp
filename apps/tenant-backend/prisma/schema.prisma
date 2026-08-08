@@ -8,6 +8,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client"
 }
 
 
@@ -737,3 +738,19 @@ model Notification {
   @@index([createdAt])
   @@map("notifications")
 }
+
+model RequestLog {
+  id             String   @id @default(uuid())
+  endpoint       String
+  method         String
+  tenantId       String?  @map("tenant_id")
+  statusCode     Int      @map("status_code")
+  responseTimeMs Int      @map("response_time_ms")
+  timestamp      DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([statusCode])
+  @@index([timestamp])
+  @@map("request_logs")
+}
+

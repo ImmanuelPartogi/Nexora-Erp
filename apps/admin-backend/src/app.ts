@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './routes/auth.routes';
 import adminUserRoutes from './routes/admin-users.routes';
+import tenantRoutes from './routes/tenants.routes';
+import analyticsRoutes from './routes/analytics.routes';
 
 export const createApp = () => {
   const app = express();
@@ -21,6 +23,8 @@ export const createApp = () => {
   // API Routes
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/admin-users', adminUserRoutes);
+  app.use('/api/v1/tenants', tenantRoutes);
+  app.use('/api/v1/analytics', analyticsRoutes);
 
   return app;
 };

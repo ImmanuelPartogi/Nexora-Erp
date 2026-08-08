@@ -9,6 +9,8 @@ import rateLimit from 'express-rate-limit';
 
 import { ENV } from './config/env';
 import routes from './routes';
+import internalRoutes from './modules/internal/internal.routes';
+import { requestLogMiddleware } from './shared/middleware/request-log.middleware';
 import { errorHandler } from './shared/middleware/error.middleware';
 
 export const createApp = (): Application => {
@@ -84,6 +86,11 @@ export const createApp = (): Application => {
   }
 
   // ============================================
+  // Request metadata logging middleware
+  // ============================================
+  app.use(requestLogMiddleware);
+
+  // ============================================
   // Health check (no auth required)
   // ============================================
   app.get('/health', (_req: Request, res: Response) => {
@@ -95,7 +102,13 @@ export const createApp = (): Application => {
   });
 
   // ============================================
-  // API Routes
+  // INTERNAL API Routes (Isolated prefix /api/v1/internal)
+  // Protected by internalAuthMiddleware
+  // ============================================
+  app.use('/api/v1/internal', internalRoutes);
+
+  // ============================================
+  // PUBLIC API Routes (/api/v1)
   // ============================================
   app.use('/api/v1', routes);
 
