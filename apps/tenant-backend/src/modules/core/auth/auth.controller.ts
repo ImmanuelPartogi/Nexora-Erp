@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from './auth.service';
 import { ResponseUtil } from '../../../shared/utils/response.util';
 import { LoginRequest, RegisterRequest } from './auth.types';
+import { resetLoginRateLimit } from '../../../shared/middleware/rate-limit.middleware';
 
 export class AuthController {
   private authService: AuthService;
@@ -18,6 +19,7 @@ export class AuthController {
   ): Promise<void> => {
     try {
       const result = await this.authService.login(req.body as LoginRequest);
+      resetLoginRateLimit(req);
       ResponseUtil.success(res, result, 'Login successful');
     } catch (error) {
       next(error);

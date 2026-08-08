@@ -1,8 +1,10 @@
 // ============================================
 // src/modules/operations/transaction/transaction.repository.ts
+// Tenant-safe repository for Transaction entity
 // ============================================
 import { Transaction, Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/db/prisma';
+import { NotFoundError } from '../../../shared/errors/AppError';
 
 export class TransactionRepository {
   async findAll(
@@ -62,25 +64,38 @@ export class TransactionRepository {
 
   async update(
     id: string,
+    companyId: string,
     data: Prisma.TransactionUpdateInput,
     updatedBy: string
   ): Promise<Transaction> {
-    return prisma.transaction.update({
-      where: { id },
+    const result = await prisma.transaction.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         ...data,
         updatedBy,
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Transaction not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
-  async softDelete(id: string): Promise<Transaction> {
-    return prisma.transaction.update({
-      where: { id },
+  async softDelete(id: string, companyId: string): Promise<Transaction> {
+    const result = await prisma.transaction.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Transaction not found or access denied');
+    }
+
+    return (await prisma.transaction.findFirst({ where: { id, companyId } }))!;
   }
 
   async getSummary(companyId: string, dateFrom?: Date, dateTo?: Date) {
@@ -119,7 +134,6 @@ export class TransactionRepository {
       }),
     ]);
 
-    // Prisma.Decimal objects don't support arithmetic directly; convert to Number.
     const incomeTotal = income._sum.amount ? Number(income._sum.amount) : 0;
     const expenseTotal = expense._sum.amount ? Number(expense._sum.amount) : 0;
 

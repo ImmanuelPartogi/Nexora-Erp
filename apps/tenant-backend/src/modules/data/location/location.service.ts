@@ -29,12 +29,12 @@ export class LocationService {
   }
 
   async update(id: string, companyId: string, data: UpdateLocationDTO) {
-    const location = await this.getById(id, companyId);
-    return this.locationRepository.update(location.id, data);
+    await this.getById(id, companyId);
+    return this.locationRepository.update(id, companyId, data);
   }
 
   async delete(id: string, companyId: string) {
-    const location = await this.getById(id, companyId);
-    return this.locationRepository.softDelete(location.id);
+    await this.getById(id, companyId);
+    return this.locationRepository.softDelete(id, companyId);
   }
 }

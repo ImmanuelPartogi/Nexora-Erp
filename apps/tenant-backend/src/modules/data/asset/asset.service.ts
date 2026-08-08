@@ -1,6 +1,6 @@
 // ============================================
 // FILE: backend/src/modules/data/asset/asset.service.ts
-// Updated to use centralized CodeService
+// Updated to enforce tenant isolation
 // ============================================
 
 import { AssetRepository } from './asset.repository';
@@ -29,11 +29,7 @@ export class AssetService {
     return asset;
   }
 
-  /**
-   * Create asset with centralized auto-generated code
-   */
   async create(data: CreateAssetDTO, companyId: string, createdBy: string) {
-    // Auto-generate code using centralized CodeService
     const assetCode = await codeService.generateCode(companyId, CODE_ENTITIES.ASSET);
 
     return this.assetRepository.create({
@@ -45,12 +41,12 @@ export class AssetService {
   }
 
   async update(id: string, companyId: string, data: UpdateAssetDTO) {
-    const asset = await this.getById(id, companyId);
-    return this.assetRepository.update(asset.id, data);
+    await this.getById(id, companyId);
+    return this.assetRepository.update(id, companyId, data);
   }
 
   async delete(id: string, companyId: string) {
-    const asset = await this.getById(id, companyId);
-    return this.assetRepository.softDelete(asset.id);
+    await this.getById(id, companyId);
+    return this.assetRepository.softDelete(id, companyId);
   }
 }

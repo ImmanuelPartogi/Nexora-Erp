@@ -223,38 +223,56 @@ export class CodeService {
       }
     }
 
-    return prisma.codeConfig.update({
-      where: { id },
+    const result = await prisma.codeConfig.updateMany({
+      where: { id, companyId },
       data: {
         ...(data.prefix && { prefix: data.prefix.toUpperCase() }),
         ...(data.digitCount && { digitCount: data.digitCount }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Code configuration not found or access denied');
+    }
+
+    return (await this.getById(id, companyId))!;
   }
 
   /**
    * Delete code configuration (soft delete)
    */
   async delete(id: string, companyId: string) {
-    const config = await this.getById(id, companyId);
+    await this.getById(id, companyId);
 
-    return prisma.codeConfig.update({
-      where: { id },
+    const result = await prisma.codeConfig.updateMany({
+      where: { id, companyId },
       data: { isActive: false },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Code configuration not found or access denied');
+    }
+
+    return (await this.getById(id, companyId))!;
   }
 
   /**
    * Reset counter for an entity
    */
   async resetCounter(id: string, companyId: string) {
-    const config = await this.getById(id, companyId);
+    await this.getById(id, companyId);
 
-    return prisma.codeConfig.update({
-      where: { id },
+    const result = await prisma.codeConfig.updateMany({
+      where: { id, companyId },
       data: { lastNumber: 0 },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Code configuration not found or access denied');
+    }
+
+    return (await this.getById(id, companyId))!;
   }
 
   /**

@@ -1,5 +1,7 @@
 // src/modules/data/location/location.repository.ts
+// Tenant-safe repository for Location entity
 import { prisma } from '../../../shared/db/prisma';
+import { NotFoundError } from '../../../shared/errors/AppError';
 import { CreateLocationDTO, UpdateLocationDTO, LocationListQuery } from './location.types';
 
 export class LocationRepository {
@@ -55,22 +57,34 @@ export class LocationRepository {
     });
   }
 
-  async update(id: string, data: UpdateLocationDTO) {
-    return prisma.location.update({
-      where: { id },
+  async update(id: string, companyId: string, data: UpdateLocationDTO) {
+    const result = await prisma.location.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         ...data,
         updatedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Location not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
-  async softDelete(id: string) {
-    return prisma.location.update({
-      where: { id },
+  async softDelete(id: string, companyId: string) {
+    const result = await prisma.location.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Location not found or access denied');
+    }
+
+    return (await prisma.location.findFirst({ where: { id, companyId } }))!;
   }
 }

@@ -1,8 +1,10 @@
 // ============================================
 // src/modules/core/role/role.repository.ts
+// Tenant-safe repository for Role entity
 // ============================================
 import { Role, Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/db/prisma';
+import { NotFoundError } from '../../../shared/errors/AppError';
 
 export class RoleRepository {
   async findAll(
@@ -90,7 +92,6 @@ export class RoleRepository {
     permissionIds: string[]
   ) {
     return prisma.$transaction(async (tx) => {
-      // Create role
       const role = await tx.role.create({
         data: {
           id: crypto.randomUUID(),
@@ -98,7 +99,6 @@ export class RoleRepository {
         },
       });
 
-      // Assign permissions
       await tx.rolePermission.createMany({
         data: permissionIds.map((permissionId) => ({
           id: crypto.randomUUID(),
@@ -113,6 +113,7 @@ export class RoleRepository {
 
   async update(
     id: string,
+    companyId: string,
     data: {
       name?: string;
       description?: string;
@@ -120,20 +121,24 @@ export class RoleRepository {
     permissionIds?: string[]
   ) {
     return prisma.$transaction(async (tx) => {
-      // Update role
+      const existing = await tx.role.findFirst({
+        where: { id, companyId, deletedAt: null },
+      });
+
+      if (!existing) {
+        throw new NotFoundError('Role not found or access denied');
+      }
+
       const role = await tx.role.update({
         where: { id },
         data,
       });
 
-      // Update permissions if provided
       if (permissionIds) {
-        // Delete existing permissions
         await tx.rolePermission.deleteMany({
           where: { roleId: id },
         });
 
-        // Add new permissions
         await tx.rolePermission.createMany({
           data: permissionIds.map((permissionId) => ({
             id: crypto.randomUUID(),
@@ -147,12 +152,18 @@ export class RoleRepository {
     });
   }
 
-  async softDelete(id: string) {
-    return prisma.role.update({
-      where: { id },
+  async softDelete(id: string, companyId: string) {
+    const result = await prisma.role.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Role not found or access denied');
+    }
+
+    return (await prisma.role.findFirst({ where: { id, companyId } }))!;
   }
 }

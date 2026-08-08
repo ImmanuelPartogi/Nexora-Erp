@@ -1,15 +1,13 @@
 // ============================================
 // FILE: backend/src/modules/core/code/code.repository.ts
-// Code Configuration Repository
+// Tenant-safe repository for Code Configuration entity
 // ============================================
 
 import { prisma } from '../../../shared/db/prisma';
-import { CreateCodeConfigRequest, UpdateCodeConfigRequest, CodeConfigResponse } from './code.types';
+import { NotFoundError } from '../../../shared/errors/AppError';
+import { CreateCodeConfigRequest, UpdateCodeConfigRequest } from './code.types';
 
 export class CodeRepository {
-  /**
-   * Get all code configurations for a company
-   */
   async findAll(companyId: string) {
     return prisma.codeConfig.findMany({
       where: { companyId },
@@ -17,18 +15,12 @@ export class CodeRepository {
     });
   }
 
-  /**
-   * Get code configuration by ID
-   */
   async findById(id: string, companyId: string) {
     return prisma.codeConfig.findFirst({
       where: { id, companyId },
     });
   }
 
-  /**
-   * Create new code configuration
-   */
   async create(data: CreateCodeConfigRequest, companyId: string) {
     return prisma.codeConfig.create({
       data: {
@@ -43,43 +35,49 @@ export class CodeRepository {
     });
   }
 
-  /**
-   * Update code configuration
-   */
-  async update(id: string, data: UpdateCodeConfigRequest) {
-    return prisma.codeConfig.update({
-      where: { id },
+  async update(id: string, companyId: string, data: UpdateCodeConfigRequest) {
+    const result = await prisma.codeConfig.updateMany({
+      where: { id, companyId },
       data: {
         ...(data.prefix && { prefix: data.prefix.toUpperCase() }),
         ...(data.digitCount && { digitCount: data.digitCount }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Code configuration not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
-  /**
-   * Delete code configuration (soft delete)
-   */
-  async delete(id: string) {
-    return prisma.codeConfig.update({
-      where: { id },
+  async delete(id: string, companyId: string) {
+    const result = await prisma.codeConfig.updateMany({
+      where: { id, companyId },
       data: { isActive: false },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Code configuration not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
-  /**
-   * Reset counter for an entity
-   */
-  async resetCounter(id: string) {
-    return prisma.codeConfig.update({
-      where: { id },
+  async resetCounter(id: string, companyId: string) {
+    const result = await prisma.codeConfig.updateMany({
+      where: { id, companyId },
       data: { lastNumber: 0 },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Code configuration not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
-  /**
-   * Find code configuration by entity and company
-   */
   async findByEntity(entity: string, companyId: string) {
     return prisma.codeConfig.findFirst({
       where: {
@@ -90,13 +88,16 @@ export class CodeRepository {
     });
   }
 
-  /**
-   * Update last number for code generation
-   */
-  async updateLastNumber(id: string, lastNumber: number) {
-    return prisma.codeConfig.update({
-      where: { id },
+  async updateLastNumber(id: string, companyId: string, lastNumber: number) {
+    const result = await prisma.codeConfig.updateMany({
+      where: { id, companyId },
       data: { lastNumber },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Code configuration not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 }

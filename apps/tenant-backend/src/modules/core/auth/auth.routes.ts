@@ -8,6 +8,8 @@ import { validateBody } from '../../../shared/middleware/validation.middleware';
 import { authenticate } from '../../../shared/middleware/auth.middleware';
 import { loginSchema, registerSchema } from './auth.validation';
 
+import { loginLimiter } from '../../../shared/middleware/rate-limit.middleware';
+
 const router = Router();
 const authController = new AuthController();
 
@@ -17,10 +19,10 @@ const authController = new AuthController();
 
 /**
  * @route   POST /api/v1/auth/login
- * @desc    User login
+ * @desc    User login (Rate limited: 5 attempts/min per IP+email)
  * @access  Public
  */
-router.post('/login', validateBody(loginSchema), authController.login);
+router.post('/login', loginLimiter, validateBody(loginSchema), authController.login);
 
 /**
  * @route   POST /api/v1/auth/register

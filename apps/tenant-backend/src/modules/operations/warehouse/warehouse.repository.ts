@@ -1,5 +1,7 @@
 // src/modules/operations/warehouse/warehouse.repository.ts
+// Tenant-safe repository for Warehouse entity
 import { prisma } from '../../../shared/db/prisma';
+import { NotFoundError } from '../../../shared/errors/AppError';
 import { CreateWarehouseDTO, UpdateWarehouseDTO, WarehouseListQuery } from './warehouse.types';
 
 export class WarehouseRepository {
@@ -55,22 +57,34 @@ export class WarehouseRepository {
     });
   }
 
-  async update(id: string, data: UpdateWarehouseDTO) {
-    return prisma.warehouse.update({
-      where: { id },
+  async update(id: string, companyId: string, data: UpdateWarehouseDTO) {
+    const result = await prisma.warehouse.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         ...data,
         updatedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Warehouse not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
-  async softDelete(id: string) {
-    return prisma.warehouse.update({
-      where: { id },
+  async softDelete(id: string, companyId: string) {
+    const result = await prisma.warehouse.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Warehouse not found or access denied');
+    }
+
+    return (await prisma.warehouse.findFirst({ where: { id, companyId } }))!;
   }
 }

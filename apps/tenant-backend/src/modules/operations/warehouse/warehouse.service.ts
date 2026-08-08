@@ -1,6 +1,6 @@
 // ============================================
 // FILE: backend/src/modules/operations/warehouse/warehouse.service.ts
-// Updated to use centralized CodeService
+// Updated to enforce tenant isolation
 // ============================================
 
 import { WarehouseRepository } from './warehouse.repository';
@@ -29,11 +29,7 @@ export class WarehouseService {
     return warehouse;
   }
 
-  /**
-   * Create warehouse with centralized auto-generated code
-   */
   async create(data: CreateWarehouseDTO, companyId: string, createdBy: string) {
-    // Auto-generate code using centralized CodeService
     const warehouseCode = await codeService.generateCode(companyId, CODE_ENTITIES.WAREHOUSE);
 
     return this.warehouseRepository.create({
@@ -45,12 +41,12 @@ export class WarehouseService {
   }
 
   async update(id: string, companyId: string, data: UpdateWarehouseDTO) {
-    const warehouse = await this.getById(id, companyId);
-    return this.warehouseRepository.update(warehouse.id, data);
+    await this.getById(id, companyId);
+    return this.warehouseRepository.update(id, companyId, data);
   }
 
   async delete(id: string, companyId: string) {
-    const warehouse = await this.getById(id, companyId);
-    return this.warehouseRepository.softDelete(warehouse.id);
+    await this.getById(id, companyId);
+    return this.warehouseRepository.softDelete(id, companyId);
   }
 }

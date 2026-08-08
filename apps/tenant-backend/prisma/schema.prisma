@@ -89,6 +89,10 @@ model Company {
   purchases      Purchase[]
   operationPoints OperationPoint[]
   auditLogs      AuditLog[]
+  stocks         Stock[]
+  stockMovements StockMovement[]
+  documents      Document[]
+  approvals      Approval[]
 
   @@index([createdAt])
   @@index([isActive])
@@ -486,22 +490,26 @@ model Warehouse {
 
 model Stock {
   id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
   productId   String   @map("product_id")
   warehouseId String   @map("warehouse_id")
   quantity    Decimal
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   product   Product   @relation(fields: [productId], references: [id])
   warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
   @@unique([productId, warehouseId])
+  @@index([companyId])
   @@index([warehouseId])
   @@map("stocks")
 }
 
 model StockMovement {
   id          String   @id @default(uuid())
+  companyId   String   @map("company_id")
   productId   String   @map("product_id")
   warehouseId String   @map("warehouse_id")
   type        String   // in, out, adjustment
@@ -512,9 +520,11 @@ model StockMovement {
   createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   product   Product   @relation(fields: [productId], references: [id])
   warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
+  @@index([companyId])
   @@index([productId])
   @@index([warehouseId])
   @@index([type])
@@ -668,6 +678,7 @@ model OperationActivity {
 
 model Document {
   id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
   entityType String   @map("entity_type")
   entityId   String   @map("entity_id")
   fileName   String   @map("file_name")
@@ -677,12 +688,17 @@ model Document {
   uploadedBy String   @map("uploaded_by")
   createdAt  DateTime @default(now()) @map("created_at")
 
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
   @@index([entityType, entityId])
   @@map("documents")
 }
 
 model Approval {
   id         String   @id @default(uuid())
+  companyId  String   @map("company_id")
   entityType String   @map("entity_type")
   entityId   String   @map("entity_id")
   approverId String   @map("approver_id")
@@ -693,8 +709,10 @@ model Approval {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
-  approver User @relation(fields: [approverId], references: [id])
+  company  Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  approver User    @relation(fields: [approverId], references: [id])
 
+  @@index([companyId])
   @@index([entityType, entityId])
   @@index([approverId])
   @@index([status])

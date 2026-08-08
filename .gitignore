@@ -55,3 +55,4 @@ apps/tenant-backend/prisma/migrations/dev.db*
 .env.production.local
 apps/tenant-backend/prisma/*.db
 apps/tenant-backend/prisma/*.db-journal
+apps/tenant-backend/prisma/*.backup*

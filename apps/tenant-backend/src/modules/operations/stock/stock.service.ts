@@ -1,6 +1,6 @@
 // ============================================
 // FILE: backend/src/modules/operations/stock/stock.service.ts
-// Updated to use centralized CodeService
+// Tenant-safe stock management service
 // ============================================
 
 import { prisma } from '../../../shared/db/prisma';
@@ -24,7 +24,8 @@ export class StockService {
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {
-      warehouse: { companyId, deletedAt: null },
+      companyId,
+      warehouse: { deletedAt: null },
     };
 
     if (query.warehouseId) where.warehouseId = query.warehouseId;
@@ -54,7 +55,7 @@ export class StockService {
     return {
       data: stocks.map(stock => ({
         id: stock.id,
-        companyId,
+        companyId: stock.companyId,
         productId: stock.productId,
         productName: stock.product?.name || 'Unknown',
         productCode: stock.product?.code,
@@ -78,7 +79,8 @@ export class StockService {
       where: {
         productId,
         warehouseId,
-        warehouse: { companyId, deletedAt: null },
+        companyId,
+        warehouse: { deletedAt: null },
       },
       include: {
         product: { select: { name: true, code: true, unit: true } },
@@ -122,12 +124,11 @@ export class StockService {
     if (!product) throw new NotFoundError('Product not found');
 
     return prisma.$transaction(async (tx) => {
-      const currentStock = await tx.stock.findUnique({
+      const currentStock = await tx.stock.findFirst({
         where: {
-          productId_warehouseId: {
-            productId: data.productId,
-            warehouseId: data.warehouseId,
-          },
+          productId: data.productId,
+          warehouseId: data.warehouseId,
+          companyId,
         },
       });
 
@@ -154,9 +155,10 @@ export class StockService {
             warehouseId: data.warehouseId,
           },
         },
-        update: { quantity: newQty },
+        update: { quantity: newQty, companyId },
         create: {
           id: crypto.randomUUID(),
+          companyId,
           productId: data.productId,
           warehouseId: data.warehouseId,
           quantity: newQty,
@@ -166,7 +168,6 @@ export class StockService {
       // Auto-generate referenceNo if not provided
       let referenceNo = data.referenceNo;
       if (!referenceNo) {
-        // Determine entity based on movement type
         const entity = data.type === 'in' ? CODE_ENTITIES.STOCK_IN 
           : data.type === 'out' ? CODE_ENTITIES.STOCK_OUT 
           : CODE_ENTITIES.STOCK_ADJUSTMENT;
@@ -177,6 +178,7 @@ export class StockService {
       await tx.stockMovement.create({
         data: {
           id: crypto.randomUUID(),
+          companyId,
           productId: data.productId,
           warehouseId: data.warehouseId,
           type: data.type,
@@ -201,7 +203,8 @@ export class StockService {
     const skip = (page - 1) * limit;
 
     const where: Record<string, unknown> = {
-      warehouse: { companyId, deletedAt: null },
+      companyId,
+      warehouse: { deletedAt: null },
     };
 
     if (query.type) where.type = query.type;

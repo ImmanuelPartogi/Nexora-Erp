@@ -1,10 +1,10 @@
 // ============================================
 // FILE: src/modules/data/product/product.repository.ts
-// FIX: Handle Prisma unique constraint error
+// Tenant-safe repository for Product entity
 // ============================================
 import { Product, Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/db/prisma';
-import { ConflictError } from '../../../shared/errors/AppError';
+import { ConflictError, NotFoundError } from '../../../shared/errors/AppError';
 
 export class ProductRepository {
   async findAll(
@@ -72,7 +72,6 @@ export class ProductRepository {
         },
       });
     } catch (error) {
-      // ✅ Handle Prisma unique constraint error
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ConflictError('Product code already exists in this company');
@@ -89,15 +88,20 @@ export class ProductRepository {
     updatedBy: string
   ): Promise<Product> {
     try {
-      return await prisma.product.update({
-        where: { id },
+      const result = await prisma.product.updateMany({
+        where: { id, companyId, deletedAt: null },
         data: {
           ...data,
           updatedBy,
         },
       });
+
+      if (result.count === 0) {
+        throw new NotFoundError('Product not found or access denied');
+      }
+
+      return (await this.findById(id, companyId))!;
     } catch (error) {
-      // ✅ Handle Prisma unique constraint error for update
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new ConflictError('Product code already exists in this company');
@@ -108,11 +112,17 @@ export class ProductRepository {
   }
 
   async softDelete(id: string, companyId: string): Promise<Product> {
-    return prisma.product.update({
-      where: { id },
+    const result = await prisma.product.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Product not found or access denied');
+    }
+
+    return (await prisma.product.findFirst({ where: { id, companyId } }))!;
   }
 }

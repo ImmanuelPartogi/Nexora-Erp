@@ -1,8 +1,10 @@
 // ============================================
 // src/modules/data/vendor/vendor.repository.ts
+// Tenant-safe repository for Vendor entity
 // ============================================
 import { Vendor, Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/db/prisma';
+import { NotFoundError } from '../../../shared/errors/AppError';
 
 export class VendorRepository {
   async findAll(
@@ -76,21 +78,33 @@ export class VendorRepository {
     data: Prisma.VendorUpdateInput,
     updatedBy: string
   ): Promise<Vendor> {
-    return prisma.vendor.update({
-      where: { id },
+    const result = await prisma.vendor.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         ...data,
         updatedBy,
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Vendor not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
   async softDelete(id: string, companyId: string): Promise<Vendor> {
-    return prisma.vendor.update({
-      where: { id },
+    const result = await prisma.vendor.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Vendor not found or access denied');
+    }
+
+    return (await prisma.vendor.findFirst({ where: { id, companyId } }))!;
   }
 }

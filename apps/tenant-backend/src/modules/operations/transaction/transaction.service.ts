@@ -1,6 +1,6 @@
 // ============================================
 // FILE: backend/src/modules/operations/transaction/transaction.service.ts
-// Updated to use centralized CodeService
+// Updated to enforce tenant isolation
 // ============================================
 
 import { NotFoundError, BadRequestError } from '../../../shared/errors/AppError';
@@ -103,15 +103,11 @@ export class TransactionService {
     );
   }
 
-  /**
-   * Create transaction with centralized auto-generated code
-   */
   async create(
     data: CreateTransactionRequest,
     companyId: string,
     createdBy: string
   ) {
-    // Auto-generate code based on transaction type
     const entity = data.type === 'income' 
       ? CODE_ENTITIES.TRANSACTION_INCOME 
       : CODE_ENTITIES.TRANSACTION_EXPENSE;
@@ -142,7 +138,7 @@ export class TransactionService {
       throw new BadRequestError('Cannot modify amount of approved transaction');
     }
 
-    return this.transactionRepo.update(id, data, updatedBy);
+    return this.transactionRepo.update(id, companyId, data, updatedBy);
   }
 
   async approve(id: string, companyId: string, updatedBy: string) {
@@ -154,6 +150,7 @@ export class TransactionService {
 
     return this.transactionRepo.update(
       id,
+      companyId,
       { status: 'approved' },
       updatedBy
     );
@@ -166,6 +163,6 @@ export class TransactionService {
       throw new BadRequestError('Cannot delete approved transaction');
     }
 
-    return this.transactionRepo.softDelete(id);
+    return this.transactionRepo.softDelete(id, companyId);
   }
 }

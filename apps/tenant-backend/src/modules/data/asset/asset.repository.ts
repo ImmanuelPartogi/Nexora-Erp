@@ -1,26 +1,17 @@
 // ============================================
 // FILE: backend/src/modules/data/asset/asset.repository.ts
-// FIX: Convert date strings to Date objects for Prisma
+// Tenant-safe repository for Asset entity
 // ============================================
 import { prisma } from '../../../shared/db/prisma';
+import { NotFoundError } from '../../../shared/errors/AppError';
 import { CreateAssetDTO, UpdateAssetDTO, AssetListQuery } from './asset.types';
 
-/**
- * ✅ Helper: Convert date string (YYYY-MM-DD) to Date object
- * Prisma requires Date objects, not strings
- */
 const parseDateString = (dateString: string | undefined): Date | undefined => {
   if (!dateString) return undefined;
-  
-  // ✅ Convert 'YYYY-MM-DD' to Date object
-  // This will create a Date at midnight UTC
   const date = new Date(dateString);
-  
-  // ✅ Validate the date is valid
   if (isNaN(date.getTime())) {
     return undefined;
   }
-  
   return date;
 };
 
@@ -83,7 +74,6 @@ export class AssetRepository {
   }
 
   async create(data: CreateAssetDTO) {
-    // ✅ Convert date string to Date object before sending to Prisma
     const prismaData = {
       ...data,
       purchaseDate: parseDateString(data.purchaseDate),
@@ -97,29 +87,37 @@ export class AssetRepository {
     });
   }
 
-  async update(id: string, data: UpdateAssetDTO) {
-    // ✅ Convert date string to Date object before sending to Prisma
+  async update(id: string, companyId: string, data: UpdateAssetDTO) {
     const prismaData = {
       ...data,
       purchaseDate: data.purchaseDate ? parseDateString(data.purchaseDate) : undefined,
       updatedAt: new Date(),
     };
 
-    return prisma.asset.update({
-      where: { id },
+    const result = await prisma.asset.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: prismaData,
-      include: {
-        location: true,
-      },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Asset not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
-  async softDelete(id: string) {
-    return prisma.asset.update({
-      where: { id },
+  async softDelete(id: string, companyId: string) {
+    const result = await prisma.asset.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Asset not found or access denied');
+    }
+
+    return (await prisma.asset.findFirst({ where: { id, companyId } }))!;
   }
-} 
+}

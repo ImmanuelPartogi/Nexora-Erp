@@ -227,14 +227,21 @@ export class RoleService {
     }
 
     // ✅ FIX: Update role WITHOUT updatedBy field
-    const role = await prisma.role.update({
-      where: { id },
+    const updatedCount = await prisma.role.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         name: data.name,
         description: data.description,
-        // ❌ REMOVED: updatedBy (field tidak ada di schema)
         updatedAt: new Date(),
       },
+    });
+
+    if (updatedCount.count === 0) {
+      throw new NotFoundError('Role not found or access denied');
+    }
+
+    const role = await prisma.role.findFirst({
+      where: { id, companyId },
       include: {
         rolePermissions: {
           include: {
@@ -245,8 +252,8 @@ export class RoleService {
     });
 
     return {
-      ...role,
-      permissions: role.rolePermissions.map((rp) => rp.permission.code),
+      ...role!,
+      permissions: role!.rolePermissions.map((rp) => rp.permission.code),
       rolePermissions: undefined,
     };
   }
@@ -268,9 +275,15 @@ export class RoleService {
       throw new ConflictError(`Cannot delete role. ${usersCount} user(s) are assigned to this role`);
     }
 
-    return prisma.role.update({
-      where: { id },
+    const result = await prisma.role.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: { deletedAt: new Date() },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Role not found or access denied');
+    }
+
+    return (await prisma.role.findFirst({ where: { id, companyId } }))!;
   }
 }

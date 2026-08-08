@@ -1,10 +1,11 @@
 // ============================================
 // FILE: backend/src/modules/data/employee/employee.repository.ts
-// Fixed: Properly handle user relation using connect
+// Tenant-safe repository for Employee entity
 // ============================================
 
 import { Employee, Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/db/prisma';
+import { NotFoundError } from '../../../shared/errors/AppError';
 
 export class EmployeeRepository {
   async findAll(
@@ -142,7 +143,6 @@ export class EmployeeRepository {
     },
     createdBy: string
   ): Promise<Employee> {
-    // Build data object - use connect for user relation if userId is provided
     const dataToCreate: any = {
       id: crypto.randomUUID(),
       name: data.name,
@@ -157,7 +157,6 @@ export class EmployeeRepository {
       createdBy,
     };
 
-    // If userId is provided, use connect to link the relation
     if (data.userId) {
       dataToCreate.user = { connect: { id: data.userId } };
     }
@@ -184,30 +183,40 @@ export class EmployeeRepository {
     },
     updatedBy: string
   ): Promise<Employee> {
-    // Build data object
     const dataToUpdate: any = {
       ...data,
       updatedBy,
     };
 
-    // If userId is provided and not empty, use connect to link the relation
     if (data.userId) {
       dataToUpdate.user = { connect: { id: data.userId } };
     }
 
-    return prisma.employee.update({
-      where: { id },
+    const result = await prisma.employee.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: dataToUpdate,
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Employee not found or access denied');
+    }
+
+    return (await this.findById(id, companyId)) as any;
   }
 
   async softDelete(id: string, companyId: string): Promise<Employee> {
-    return prisma.employee.update({
-      where: { id },
+    const result = await prisma.employee.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Employee not found or access denied');
+    }
+
+    return (await prisma.employee.findFirst({ where: { id, companyId } }))!;
   }
 
   async findByEmail(email: string, companyId: string): Promise<Employee | null> {

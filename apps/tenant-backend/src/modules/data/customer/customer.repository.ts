@@ -1,10 +1,11 @@
 // ============================================
 // FILE: backend/src/modules/data/customer/customer.repository.ts
-// FIX: Add method to find last customer for auto-generate code
+// Tenant-safe repository for Customer entity
 // ============================================
 
 import { Customer, Prisma } from '@prisma/client';
 import { prisma } from '../../../shared/db/prisma';
+import { NotFoundError } from '../../../shared/errors/AppError';
 
 export class CustomerRepository {
   async findAll(
@@ -59,21 +60,17 @@ export class CustomerRepository {
     });
   }
 
-  /**
-   * ✅ NEW: Find last customer by company to generate next code
-   * Used for auto-generating customer code: CUST-0001, CUST-0002, etc.
-   */
   async findLastByCompany(companyId: string): Promise<Customer | null> {
     return prisma.customer.findFirst({
       where: {
         companyId,
         deletedAt: null,
         code: {
-          startsWith: 'CUST-', // Only get auto-generated codes
+          startsWith: 'CUST-',
         },
       },
       orderBy: {
-        createdAt: 'desc', // Get latest created
+        createdAt: 'desc',
       },
     });
   }
@@ -97,24 +94,36 @@ export class CustomerRepository {
     data: Prisma.CustomerUpdateInput,
     updatedBy: string
   ): Promise<Customer> {
-    return prisma.customer.update({
-      where: { id },
+    const result = await prisma.customer.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         ...data,
         updatedBy,
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Customer not found or access denied');
+    }
+
+    return (await this.findById(id, companyId))!;
   }
 
   async softDelete(
     id: string,
     companyId: string
   ): Promise<Customer> {
-    return prisma.customer.update({
-      where: { id },
+    const result = await prisma.customer.updateMany({
+      where: { id, companyId, deletedAt: null },
       data: {
         deletedAt: new Date(),
       },
     });
+
+    if (result.count === 0) {
+      throw new NotFoundError('Customer not found or access denied');
+    }
+
+    return (await prisma.customer.findFirst({ where: { id, companyId } }))!;
   }
 }

@@ -588,8 +588,8 @@ export class OwnerAnalyticsService {
       prisma.stockMovement.count({ where: { warehouse: { companyId, deletedAt: null } } }),
       prisma.auditLog.count({ where: { companyId } }),
       prisma.notification.count({ where: { user: { companyUsers: { some: { companyId } } } } }),
-      prisma.document.count(),
-      prisma.approval.count(),
+      prisma.document.count({ where: { companyId } }),
+      prisma.approval.count({ where: { companyId } }),
     ]);
 
     const names = [
@@ -607,17 +607,10 @@ export class OwnerAnalyticsService {
   }
 
   private async getApprovalsMetrics(companyId: string): Promise<OwnerDashboardStats['approvals']> {
-    const users = await prisma.companyUser.findMany({
-      where: { companyId, isActive: true },
-      select: { userId: true },
-    });
-    const ids = users.map((u) => u.userId);
-    if (!ids.length) return { pending: 0, approved: 0, rejected: 0, approvalRate: 0 };
-
     const [pending, approved, rejected] = await Promise.all([
-      prisma.approval.count({ where: { approverId: { in: ids }, status: 'pending' } }),
-      prisma.approval.count({ where: { approverId: { in: ids }, status: 'approved' } }),
-      prisma.approval.count({ where: { approverId: { in: ids }, status: 'rejected' } }),
+      prisma.approval.count({ where: { companyId, status: 'pending' } }),
+      prisma.approval.count({ where: { companyId, status: 'approved' } }),
+      prisma.approval.count({ where: { companyId, status: 'rejected' } }),
     ]);
 
     const total = pending + approved + rejected;
