@@ -7,7 +7,7 @@ import { ReactNode, useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/shared/store/auth.store';
 import { useCompanyStore } from '@/shared/store/company.store';
-import { ReadOnlyBadge } from '@/shared/components/ReadOnlyBadge';
+import { ReadOnlyBadge } from '@/shared/components/ui';
 
 const PERMISSIONS = {
   DASHBOARD:    'core.dashboard.view',

@@ -24,3 +24,5 @@ export { FormSection } from './FormSection';
 export { DataTableWrapper } from './DataTableWrapper';
 export { EmptyState } from './EmptyState';
 export { LoadingSkeleton, TextSkeleton, AvatarSkeleton, CardSkeleton, TableSkeleton } from './LoadingSkeleton';
+export { ReadOnlyBadge } from './ReadOnlyBadge';
+

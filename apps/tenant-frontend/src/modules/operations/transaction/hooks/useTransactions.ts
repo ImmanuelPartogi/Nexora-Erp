@@ -1,33 +1,16 @@
-// ============================================
-// FILE: src/modules/operations/transaction/hooks/useTransactions.ts
-// ============================================
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import { transactionApi } from '@/shared/api/transaction.api';
-import { Transaction, PaginatedResponse, ListQueryParams } from '@/shared/types';
+import { Transaction, ListQueryParams } from '@/shared/types';
+import { useResource, useResourceById } from '@/shared/hooks/useResource';
 
-export const useTransactions = (params?: ListQueryParams & { type?: string; status?: string }) => {
-  const [data, setData] = useState<PaginatedResponse<Transaction> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type TransactionParams = ListQueryParams & { type?: string; status?: string };
 
-  const fetchTransactions = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await transactionApi.list(params);
-      setData(response);
-    } catch {
-      setError('Failed to load transactions');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+export const useTransactions = (params?: TransactionParams) => {
+  const fetchFn = useCallback((p?: TransactionParams) => transactionApi.list(p), []);
+  return useResource<Transaction, TransactionParams>({ fetchFn, params });
+};
 
-  const paramsKey = JSON.stringify(params);
-  useEffect(() => {
-    fetchTransactions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramsKey]);
-
-  return { data, isLoading, error, refetch: fetchTransactions };
+export const useTransaction = (id: string) => {
+  const fetchFn = useCallback((targetId: string) => transactionApi.getById(targetId), []);
+  return useResourceById<Transaction>({ fetchFn, id });
 };

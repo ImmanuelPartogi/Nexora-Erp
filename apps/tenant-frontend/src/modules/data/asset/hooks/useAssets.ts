@@ -1,58 +1,16 @@
-// FILE: src/modules/data/asset/hooks/useAssets.ts
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import { assetApi } from '@/shared/api/asset.api';
-import { Asset, PaginatedResponse, ListQueryParams } from '@/shared/types';
+import { Asset, ListQueryParams } from '@/shared/types';
+import { useResource, useResourceById } from '@/shared/hooks/useResource';
 
-export const useAssets = (params?: ListQueryParams & { locationId?: string; condition?: string }) => {
-  const [data, setData] = useState<PaginatedResponse<Asset> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type AssetParams = ListQueryParams & { locationId?: string; condition?: string };
 
-  const fetchAssets = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await assetApi.list(params);
-      setData(response);
-    } catch {
-      setError('Failed to load assets');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const paramsKey = JSON.stringify(params);
-  useEffect(() => {
-    fetchAssets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramsKey]);
-
-  return { data, isLoading, error, refetch: fetchAssets };
+export const useAssets = (params?: AssetParams) => {
+  const fetchFn = useCallback((p?: AssetParams) => assetApi.list(p), []);
+  return useResource<Asset, AssetParams>({ fetchFn, params });
 };
 
 export const useAsset = (id: string) => {
-  const [data, setData] = useState<Asset | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchAsset = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await assetApi.getById(id);
-        setData(response);
-      } catch {
-        setError('Failed to load asset');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchAsset();
-    }
-  }, [id]);
-
-  return { data, isLoading, error };
+  const fetchFn = useCallback((targetId: string) => assetApi.getById(targetId), []);
+  return useResourceById<Asset>({ fetchFn, id });
 };

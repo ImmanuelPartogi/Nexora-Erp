@@ -1,60 +1,18 @@
-// ============================================
-// FILE: src/modules/operations/stock/hooks/useStocks.ts
-// ============================================
-import { useState, useEffect } from 'react';
-import { stockApi, StockMovementListParams } from '@/shared/api/stock.api';
-import { Stock, StockMovement, PaginatedResponse, ListQueryParams } from '@/shared/types';
+import { useCallback } from 'react';
+import { stockApi } from '@/shared/api/stock.api';
+import { Stock, StockMovement, ListQueryParams } from '@/shared/types';
+import { useResource } from '@/shared/hooks/useResource';
 
-export const useStocks = (params?: ListQueryParams & { warehouseId?: string; productId?: string }) => {
-  const [data, setData] = useState<PaginatedResponse<Stock> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type StockParams = ListQueryParams & { warehouseId?: string; productId?: string };
 
-  const fetchStocks = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await stockApi.list(params);
-      setData(response);
-    } catch {
-      setError('Failed to load stocks');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const paramsKey = JSON.stringify(params);
-  useEffect(() => {
-    fetchStocks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramsKey]);
-
-  return { data, isLoading, error, refetch: fetchStocks };
+export const useStocks = (params?: StockParams) => {
+  const fetchFn = useCallback((p?: StockParams) => stockApi.list(p), []);
+  return useResource<Stock, StockParams>({ fetchFn, params });
 };
 
-export const useStockMovements = (params?: ListQueryParams & { type?: string; warehouseId?: string }) => {
-  const [data, setData] = useState<PaginatedResponse<StockMovement> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type StockMovementParams = ListQueryParams & { warehouseId?: string; productId?: string; type?: string };
 
-  const fetchMovements = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const response = await stockApi.movements(params as StockMovementListParams);
-      setData(response);
-    } catch {
-      setError('Failed to load movements');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const paramsKey = JSON.stringify(params);
-  useEffect(() => {
-    fetchMovements();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramsKey]);
-
-  return { data, isLoading, error, refetch: fetchMovements };
+export const useStockMovements = (params?: StockMovementParams) => {
+  const fetchFn = useCallback((p?: StockMovementParams) => stockApi.movements(p as any), []);
+  return useResource<StockMovement, StockMovementParams>({ fetchFn, params });
 };
